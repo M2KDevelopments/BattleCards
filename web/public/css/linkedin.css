@@ -1,0 +1,26 @@
+.btn-ln-getgame-comment {
+    display: flex;
+    color: white;
+    font-size: 1.0rem;
+    background: #4d4d4d;
+    padding: 12px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.6s all;
+}
+
+.btn-ln-getgame-comment img {
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+}
+
+.btn-ln-getgame-comment span {
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+
+.btn-ln-getgame-comment:hover {
+    background: #4d4d4d;
+}

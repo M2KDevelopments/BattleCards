@@ -1,0 +1,236 @@
+{
+  "name": "CRM Side Kick (Beta)",
+  "short_name": "CRM Side Kick: Your CRM's new best friend",
+  "version": "1.0.0",
+  "description": "Meet your CRM's new best friend: CRM Side Kick. Supercharges your CRM with seamlessly integration",
+  "manifest_version": 3,
+  "minimum_chrome_version": "88",
+  "homepage_url": "https://crmsidekick.com",
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "CRM Side Kick",
+    "default_icon": {
+      "16": "logo192.png",
+      "32": "logo192.png",
+      "48": "logo192.png",
+      "128": "logo192.png",
+      "192": "logo192.png",
+      "512": "logo192.png"
+    }
+  },
+  "permissions": [
+    "identity",
+    "contextMenus",
+    "gcm",
+    "notifications",
+    "storage",
+    "tabs"
+  ],
+  "icons": {
+    "16": "logo192.png",
+    "32": "logo192.png",
+    "48": "logo192.png",
+    "128": "logo192.png",
+    "512": "logo192.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://crmsidekick.onrender.com/api/google/*",
+        "https://crmsidekick.onrender.com/api/linkedin/*",
+        "https://www.crmsidekick.com/api/linkedin/*",
+        "https://www.crmsidekick.com/api/google/*"
+      ],
+      "js": [
+        "./content/oauth.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "./libs/toastr.js",
+        "./libs/toastify.js",
+        "./libs/sweetalert.js",
+        "./libs/jquery-3.7.0.min.js",
+        "./functions/texttospeech.js",
+        "./functions/download.js",
+        "./functions/facebook.api.call.js",
+        "./functions/popup.js",
+        "./content.js"
+      ],
+      "css": [
+        "./libs/toastify.css",
+        "./libs/toastr.css",
+        "./libs/bootstrap.css",
+        "./css/popup.css",
+        "./styles.css"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/events/birthdays*",
+        "https://*.facebook.com/events/birthdays/",
+        "https://*.facebook.com/events/birthdays/*"
+      ],
+      "js": [
+        "./content/facebook.birthday.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/*/friends_all",
+        "https://*.facebook.com/*/friends_all*",
+        "https://*.facebook.com/*/friends",
+        "https://*.facebook.com/*/friends*",
+        "https://*.facebook.com/*/friends_mutual",
+        "https://*.facebook.com/*/friends_mutual*",
+        "https://*.facebook.com/*/followers",
+        "https://*.facebook.com/*/followers*",
+        "https://*.facebook.com/profile.php*"
+      ],
+      "js": [
+        "./content/facebook.friends.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/friends/requests",
+        "https://*.facebook.com/friends/requests*"
+      ],
+      "js": [
+        "./content/facebook.friendrequests.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/groups/*"
+      ],
+      "js": [
+        "./content/facebook.groups.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/*"
+      ],
+      "js": [
+        "./content/facebook.pages.js",
+        "./content/facebook.profiles.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/groups/*/member-requests",
+        "https://*.facebook.com/groups/*/participant_requests-requests",
+        "https://*.facebook.com/groups/*/requests"
+      ],
+      "js": [
+        "./content/facebook.group.approval.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/groups/*/members",
+        "https://*.facebook.com/groups/*/members*"
+      ],
+      "js": [
+        "./content/facebook.groups.members.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/groups/feed"
+      ],
+      "js": [
+        "./content/facebook.groups.feed.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/*/posts/*",
+        "https://*.facebook.com/groups/*/posts/*"
+      ],
+      "js": [
+        "./content/facebook.posts.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.facebook.com/messages/t/*",
+        "https://*.facebook.com/messages/t/"
+      ],
+      "js": [
+        "./content/facebook.messenger.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/feed",
+        "https://www.linkedin.com/feed/"
+      ],
+      "css": [
+        "./css/linkedin.css"
+      ],
+      "js": [
+        "./content/linkedin.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/groups/*/members/"
+      ],
+      "css": [
+        "./css/linkedin.css"
+      ],
+      "js": [
+        "./content/linkedin.groups.members.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
