@@ -5,7 +5,7 @@ const colors = require('./res/colors.json')
 
 // Game Settings
 const cards = []; // will put all the light mode cards in here in the correct order;
-const lightCards = [];
+let lightCards = [];
 const darkCards = [];
 const decks = 3;
 const numberOfCardsPerGame = 7;
@@ -30,6 +30,7 @@ class Player {
     allancies = new Set();
     revengeId = -1;
     score = 1000;
+    hurtByPlayers = new Set();
 
     constructor(name, type = "npc") {
         this.id = Math.random();
@@ -297,7 +298,6 @@ console.log('Current player', players[currentPlayer].name);
 console.log('Current Player Damage', players[currentPlayer].getPotentialGameEndDamage(lightCards, darkCards));
 
 
-
 // Get the best card if you and npc
 if (players[currentPlayer].type === "npc") {
 
@@ -378,12 +378,10 @@ if (players[currentPlayer].type === "npc") {
 
         // pick a card
         const bestcard = bestplay.sort((a, b) => b.probability - a.probability)[0];
-        console.log('Best Card >>', `${bestcard.type} ${bestcard.color || ""} ${bestcard.value || ""}`, '>>', bestcard.probability);
+        console.log('Best Card >>', `${bestcard.type} ${bestcard.color || ""} ${bestcard.value || ""}`, '>>', `${parseInt(bestcard.probability * 100.0)}%`);
 
         // play card
-        if (player.cards.delete(bestcard.index)) {
-            cardsOnTable.add(bestcard.index);
-        }
+        if (player.cards.delete(bestcard.index)) cardsOnTable.add(bestcard.index);
 
     } else if (currentCard.type == "pick") {
 
@@ -514,10 +512,49 @@ function probabilityOfNumberCard(card, currentPlayer, players, lightCards, darkC
 }
 
 
-function shuffleDeck() {
+/**
+ * This function simulates shuffling a deck. Randomize the ids of the cards again and remove all the tablecards except the current card.
+ */
+function shuffleDeck(lightCards, darkCards, lightMode) {
 
+    // remove all the table cards
+    cardsOnTable.clear();
+    cardsOnTable.add(currentCard.index);
+
+    // give all the cards in player's hand a new id or index of the lightcards array but it should be the same card
+    let counter = 0;
+    const playerCards = new Set();
+    for (const player of players) {
+        const newCards = [];
+        for (const card of player.getCards(lightCards, darkCards, lightMode)) {
+            const c = { ...card, index: counter }
+            cards.push(c);
+            newCards.push(counter);
+            playerCards.add(counter);
+            counter++;
+        }
+        player.setCards(newCards);
+    }
+
+
+    // give all other cards a new index randomize them
+    const tempCards = lightCards.filter(card => !playerCards.has(card.index));
+    const newLightCards = [];
+    counter = 0;
+
+    while (tempCards.length) {
+
+        // get random index of cards to choose
+        const index = parseInt(Math.random() * tempCards.length);
+
+        // remove card from map
+        const [selectedCard] = tempCards.splice(index, 1);
+
+        newLightCards.push({ ...selectedCard, index: counter++ }); //uses the same darkId
+
+    }
+
+    //update light cards
+    lightCards = newLightCards;
 }
 
-function flipDeck() {
-
-}
