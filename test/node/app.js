@@ -18,7 +18,6 @@ let gameTime = maxTime / 2; // seconds
 let battleTotal = 0;
 
 
-
 // Player Settings
 let currentPlayer = 3;
 class Player {

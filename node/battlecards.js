@@ -1,0 +1,189 @@
+
+const specialCards = require('./jsons/specialcards.json');
+const colors = require('./jsons/colors.json')
+
+
+/**
+ * Get the game settings for a fresh game
+ * @param {*} gameoptions - options chosen by the host player 
+ * @returns the game settings for a fresh game. Players, cards, area, etc
+ */
+exports.createGame = function (gameoptions, counter) {
+
+    const { decks, area, npcs, players } = gameoptions
+    const gametime = 300;
+    const numberOfCardsPerGame = 7;
+    const startpoints = 1000;
+    const allplayers = getShuffledPlayers(npcs, players);
+    const cards = getShuffledCards(decks);
+
+    // distrubute the cards
+    let cardIndex = 0;
+    for (const index in allplayers) {
+        for (let i = 0; i < numberOfCardsPerGame; i++) {
+            allplayers[index].cards.push(cardIndex++)
+        }
+    }
+
+
+    // chooose first card on the table
+    const cardIndexOnTable = chooseFirstCards(cards.lightCards, allplayers);
+
+    // send settings to everyone
+    const settings = {
+        countdown: counter,
+        players: allplayers,
+        area,
+        gametime,
+        cards, // {lightCards, darkCards}
+        cardIndexOnTable,
+        startpoints
+    };
+
+
+    return settings;
+}
+
+
+/**
+ * Get array of shuffled players
+ * @param {Array} npcs - {name, id} 
+ * @param {Array} players - {name, socketId} 
+ * @returns all of randomized players
+ */
+function getShuffledPlayers(npcs, players) {
+    // {name:string, id, npc: boolean, }
+    const list = [];
+
+    // add npcs to list
+    for (const npc of npcs) list.push({ ...npc, npc: true, cards: [] });
+
+    // add websocket players to list
+    for (const player of players) {
+        list.push({
+            id: player.socketId,
+            name: player.name,
+            npc: false,
+            cards: []
+        });
+    }
+
+    // Randomize Players
+    const allplayers = []
+    while (list.length) {
+        const index = parseInt(Math.random() * list.length);
+        const [player] = list.splice(index, 1);
+        allplayers.push(player);
+    }
+
+    return allplayers;
+}
+
+
+/**
+ * Get randomized cards
+ * @param {Array} npcs - {name, id} 
+ * @returns all of randomized cards
+ */
+function getShuffledCards(decks) {
+    const cards = []; // will put all the light mode cards in here in the correct order;
+
+    const lightCards = [];
+    const darkCards = [];
+
+    // System check if the number dark mode cards available match the number of light mode cards available
+    let lightCount = 0;
+    let darkCount = 0;
+    for (const s of specialCards) {
+        if (s.light) lightCount += s.howmany;
+        if (s.dark) darkCount += s.howmany;
+    }
+    if (lightCount != darkCount) {
+        console.error("Error >> Light mode cards are not equal to dark mode cards");
+        console.error("Error >> Change the special cards json", 'Light:', lightCount, '!= Dark:', darkCount);
+        return { lightCards, darkCards };
+    }
+
+
+    // add all cards number cards
+    for (let d = 0; d < decks; d++) {
+        for (const color of colors) {
+            for (let j = 0; j < 9; j++) {
+                cards.push({ type: "number", value: j + 1, color, battleValue: j + 1 })
+                darkCards.push({ type: "number", value: j + 1, color, battleValue: j + 1 })
+            };
+        }
+    }
+
+
+    // add all special cards
+    for (let d = 0; d < decks; d++) {
+        for (const specialCard of specialCards) {
+            for (let j = 0; j < specialCard.howmany; j++) {
+
+                // we are use the spread operator because if you use specialCard since it coming from a json file
+                // it points to the same location in memory
+                // so update any special card will update the duplicates
+                if (specialCard.light) cards.push({ ...specialCard });
+
+                if (specialCard.dark) darkCards.push({ ...specialCard });
+            }
+        }
+    }
+
+
+    // randomize the cards
+    let cardIndex = 0;
+    while (cards.length) {
+
+        // get random index of cards to choose
+        const index = parseInt(Math.random() * cards.length);
+
+        // add dark card id
+        const darkId = cards.length - 1;
+
+        // remove card from map
+        const [selectedCard] = cards.splice(index, 1);
+
+        lightCards.push({ ...selectedCard, darkId, index: cardIndex++ });
+
+    }
+
+    return { lightCards, darkCards };
+}
+
+
+
+/**
+ * Get the index of the first number card on the table.
+ * @param {Array} npcs - {name, id} 
+ * @returns the index of the first number card on the table.
+ */
+function chooseFirstCards(lightCards, allplayers) {
+    /**
+     * Choose first card on the table
+     * - loops through all the cards
+     * - checks if it is a number card
+     * - checks if the card already exists in a player hand
+     * - the player has the index value of the lightCards array
+     * - if the a card is found adds the index of the lightCards in table cards
+     * - and sets the current card
+     */
+    const allCardsInHand = new Set();
+    for (const player of allplayers) {
+        for (const cardIndex of player.cards) {
+            allCardsInHand.add(parseInt(cardIndex));
+        }
+    }
+
+
+    for (const cardIndex in lightCards) {
+        const i = parseInt(cardIndex)
+        if (lightCards[i].type == "number" && !allCardsInHand.has(i)) {
+            return parseInt(cardIndex)
+        }
+    }
+
+    // if a number card is not found if fails
+    return -1;
+}
