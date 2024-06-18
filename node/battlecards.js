@@ -8,13 +8,13 @@ const colors = require('./jsons/colors.json')
  * @param {*} gameoptions - options chosen by the host player 
  * @returns the game settings for a fresh game. Players, cards, area, etc
  */
-exports.createGame = function (gameoptions, counter) {
+exports.createGame = function (gameoptions, counter, hostSocketId) {
 
-    const { decks, area, npcs, players } = gameoptions
+    const { decks, area, npcs, players, playername } = gameoptions
     const gametime = 300;
     const numberOfCardsPerGame = 7;
     const startpoints = 1000;
-    const allplayers = getShuffledPlayers(npcs, players);
+    const allplayers = getShuffledPlayers(npcs, [...players, { name: playername, socketId: hostSocketId }]);
     const cards = getShuffledCards(decks);
 
     // distrubute the cards

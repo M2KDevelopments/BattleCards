@@ -1,3 +1,5 @@
+import { Card } from "./card";
+
 export default class Player {
 
     id = -1;
@@ -18,7 +20,7 @@ export default class Player {
      * @param {Array<int>} cards
      */
     constructor(id, name, npc = false, score = 1000, cards = []) {
-        this.id = id || Math.random();
+        this.id = id;
         this.name = name;
         this.npc = npc;
         this.score = score;
@@ -34,9 +36,15 @@ export default class Player {
      */
     getCards(lightCards, darkCards, lightMode) {
         if (lightMode) {
-            return Array.from(this.cards.values()).map((id) => lightCards[id])
+            return Array.from(this.cards.values()).map((id) => {
+                const l = lightCards[id]
+                return new Card(l.index, l.type, l.value, l.color, l.battleValue, l.darkId)
+            });
         } else {
-            return Array.from(this.cards.values()).map(id => darkCards[lightCards[id].darkId]);
+            return Array.from(this.cards.values()).map(id => {
+                const d = darkCards[lightCards[id].darkId];
+                return new Card(d.index, d.type, d.value, d.color, d.battleValue)
+            });
         }
     }
 
@@ -67,6 +75,7 @@ export default class Player {
     getMaxBattleCardValue(lightCards, darkCards) {
         return Array.from(this.cards.values())
             .map(index => darkCards[lightCards[index].darkId])
+            .map(d => new Card(d.index, d.type, d.value, d.color, d.battleValue))
             .sort((a, b) => b.battleValue - a.battleValue)[0].battleValue;
     }
 

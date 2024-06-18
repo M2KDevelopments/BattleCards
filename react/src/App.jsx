@@ -9,6 +9,7 @@ import Tutorial from "./views/Tutorial";
 import GameLobby from "./views/GameLobby";
 import io from 'socket.io-client';
 import GameJoin from "./views/GameJoin";
+import Player from "./classes/player";
 
 export const BACKENDURL = 'http://localhost:4000'
 export const socket = io(BACKENDURL)// connect to websocket server
@@ -45,7 +46,7 @@ export const ContextData = createContext({
     host: false,
     // a copy of the settings for the main game for each player. Defined in GameLobby.jsx
     game: {
-      players: [], area: "", cardIndexOnTable: -1,
+      players: [new Player()], area: "", cardIndexOnTable: -1,
       lightCards: [], darkCards: [], gametime: 300, startpoints: 1000
     }
   },
@@ -67,12 +68,10 @@ function App() {
     host: false,
     // a copy of the settings for the main game for each player. Defined in GameLobby.jsx
     game: {
-      players: [], area: "", cardIndexOnTable: -1,
+      players: [new Player()], area: "", cardIndexOnTable: -1,
       lightCards: [], darkCards: [], gametime: 300, startpoints: 1000
     }
   });
-
-
 
   // check if the url as a socket room id
   useEffect(() => {
@@ -91,7 +90,7 @@ function App() {
       settings, setSettings,
       gameoptions, setGameOptions
     }}>
-      <main>
+      <main className="w-screen h-screen">
 
         {/* Show the correct page */}
         {page === PAGE_MENU && <MainMenu />}

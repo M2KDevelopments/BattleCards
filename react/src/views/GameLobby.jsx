@@ -2,7 +2,7 @@ import { useContext, useEffect, useReducer, useState } from "react";
 import { ContextData, PAGE_GAME, socket } from "../App";
 import Loading from "../components/Loading";
 import Player from "../classes/player";
-
+7
 function GameLobby() {
 
     // get gameoptions that were saved from GameOptions Page in global variable
@@ -11,7 +11,7 @@ function GameLobby() {
 
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [countdown, setCountdown] = useState(5);
+    const [countdown, setCountdown] = useState(10);
 
     // useReducer to be used for multiple or complicated useStates
     const reducer = (state, action) => {

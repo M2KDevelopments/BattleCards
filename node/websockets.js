@@ -67,7 +67,7 @@ exports.onConnection = (socket) => {
         // distribute cards
         // choose 1st card on the table
         // send state of the game to all players.
-        const settings = BattleCards.createGame({ decks, area, npcs, players }, counter);
+        const settings = BattleCards.createGame({ decks, area, npcs, players }, counter, socket.id);
         socket.to(roomId).emit("onloadgame", settings);
         socket.emit("onloadgame", settings);
       }
