@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useReducer, useState } from "react"
 import { ContextData, socket } from "../App"
 import { Card } from "../classes/card";
 import PlayingCard from '../components/PlayingCard'
@@ -12,6 +12,7 @@ function BattleCards() {
   // initialize game
   const [players, setPlayers] = useState(gameoptions.game.players);
   const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
+  const [playerTime, setPlayerTime] = useState(15);
   const [cardIndexOnTable, setCardIndexOnTable] = useState(gameoptions.game.cardIndexOnTable);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [clockwise, setClockwise] = useState(true);
@@ -24,22 +25,55 @@ function BattleCards() {
   // get index of this player
   const meIndex = useMemo(() => players.findIndex(p => p.id == socket.id), [players])
 
+
   const cards = useMemo(() => {
     return players[meIndex].getCards(lightCards, darkCards, lightMode);
   }, [players, meIndex, lightCards, darkCards, lightMode]);
+
 
   const currentCard = useMemo(() => {
     const l = lightCards[cardIndexOnTable];
     return new Card(l.index, l.type, l.value, l.color, l.battleValue, l.darkId);
   }, [lightCards, cardIndexOnTable])
 
-  // const reducer = (state, action) => {
-  //   if (action.addcard) state.cardsOnTable.add(action.addcard)//addcard
-  //   return { ...state, }
-  // }
-  // const [state, dispatch] = useReducer(reducer, {
-  //   cardsOnTable: new Set()
-  // });
+
+  // I'm using useReducer to avoid using too many useState variables in a useEffect
+  const reducer = (state, action) => {
+    if (action.nextplayer != undefined) {
+
+      // only host can send 
+      if (gameoptions.host) {
+        const plyrs = players.map(player =>
+          player.getJSON(lightCards, darkCards, lightMode)
+        )
+        const card = currentCard.getJSON();
+        const t = gameTime;
+        const r = gameoptions.roomId;
+        const data = {
+          roomId: gameoptions.roomId,
+          index: action.nextplayer,
+          players: plyrs,
+          currentCard: currentCard,
+          gameTime: gameTime,
+          lightMode: lightMode
+        }
+        socket.emit('nextplayer', data)
+      }
+    }
+
+    if (action.pickcard) {
+      const { cardIndices, playerIndex } = action.pickcard;
+      players[playerIndex].addCards(cardIndices);
+      setPlayers([...players]);
+    }
+
+    // add card to table
+    if (action.addcard) state.cardsOnTable.add(action.addcard)//addcard
+    return { ...state, }
+  }
+  const [state, dispatch] = useReducer(reducer, {
+    cardsOnTable: new Set()
+  });
 
 
   // set interval for each player to update timer
@@ -48,16 +82,40 @@ function BattleCards() {
   }, [gameoptions]);
 
 
+  // next player
+  useEffect(() => {
+    // should trigger on when the current player changes
+    dispatch({ nexplayer: currentPlayerIndex });
+  }, [currentPlayerIndex])
+
+
   // listen for websocket
   useEffect(() => {
 
-
+    // game timer
     const onTimer = (time) => setGameTime(time);
     socket.on('ontime', onTimer);
+
+    // player timer
+    const onPlayerTimer = (time) => setPlayerTime(time);
+    socket.on('onplayertime', onPlayerTimer);
+
+    const onPickedCard = (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
+
+      // add cards to hand
+      const pickcard = { cardIndices, playerIndex: currentPlayerIndex }
+      dispatch({ pickcard });
+
+      // trigger next player
+      setCurrentPlayerIndex(nextPlayerIndex);
+    }
+    socket.on('onpickcard', onPickedCard)
 
     // on dismount remove listener
     return () => {
       socket.off('ontimer', onTimer);
+      socket.off('onplayertime', onPlayerTimer);
+      socket.off('onpickcard', onPickedCard);
     }
   }, [])
 
@@ -76,6 +134,42 @@ function BattleCards() {
 
 
   const onPick = () => {
+
+    // not your turn
+    if (meIndex != currentPlayerIndex) return;
+
+    // get all the cards in the players hands
+    const allCardsInHand = new Set();
+    for (const player of players) {
+      for (const cardIndex of Array.from(player.cards.values())) {
+        allCardsInHand.add(cardIndex)
+      }
+    }
+
+    // 
+    for (const cardIndex of state.cardsOnTable) allCardsInHand.add(cardIndex);
+
+    // choose a card from list that is not in hand or on the table
+    const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+
+    // send data to websockets
+    const data = {
+      roomId: gameoptions.roomId,
+      cardIndices: [cardIndex],
+      playerIndex: currentPlayerIndex,
+      playerCount: players.length
+    }
+
+
+    socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
+
+      // add cards to hand
+      const pickcard = { cardIndices, playerIndex: currentPlayerIndex }
+      dispatch({ pickcard });
+
+      // trigger next player
+      setCurrentPlayerIndex(nextPlayerIndex);
+    })
 
   }
 

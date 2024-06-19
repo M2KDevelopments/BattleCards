@@ -168,4 +168,18 @@ export default class Player {
                 return true;
             });
     }
+
+
+    getJSON(lightCards, darkCards, lightMode) {
+        return {
+            id: this.id,
+            name: this.name,
+            npc: this.npc,
+            cards: this.getCards(lightCards, darkCards, lightMode).map(card => card.getJSON()),
+            allancies: Array.from(this.allancies.values()),
+            revengeId: this.revengeId,
+            score: this.score,
+            hurtByPlayers: Array.from(this.hurtByPlayers.values())
+        }
+    }
 }

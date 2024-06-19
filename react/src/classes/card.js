@@ -53,5 +53,17 @@ export class Card {
                 return this.value;
             default: return this.value;
         }
+
+    }
+
+    getJSON() {
+        return {
+            darkId: this.darkId,
+            index: this.index,
+            type: this.type,
+            value: this.value,
+            color: this.color,
+            battleValue: this.battleValue
+        }
     }
 }
