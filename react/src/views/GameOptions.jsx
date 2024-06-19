@@ -78,9 +78,9 @@ export default function GameOptions() {
     // if (!npcPlayers.length) return alert("Please enter an opponent");
 
 
-    // Join the game room
+    // Host joins the game room as player
     socket.emit('join', { name: playername, roomId: gamesettings.roomId }, () => {
-      console.log(`I've joined the room`);
+      console.log(`Host has joined the room`);
       setGameOptions(gamesettings);
       setPage(PAGE_GAMELOBBY);
     });

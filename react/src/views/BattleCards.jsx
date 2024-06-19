@@ -63,7 +63,7 @@ function BattleCards() {
 
     if (action.pickcard) {
       const { cardIndices, playerIndex } = action.pickcard;
-      players[playerIndex].addCards(cardIndices);
+      players[playerIndex].addCards(...cardIndices);
       setPlayers([...players]);
     }
 
@@ -146,7 +146,9 @@ function BattleCards() {
       }
     }
 
-    // 
+
+    // add all the unplayable cards in set
+    allCardsInHand.add(cardIndexOnTable);
     for (const cardIndex of state.cardsOnTable) allCardsInHand.add(cardIndex);
 
     // choose a card from list that is not in hand or on the table
@@ -196,7 +198,7 @@ function BattleCards() {
               </div>
             )}
         </div>
-
+        {currentPlayerIndex == meIndex ? <div>Your Turn</div> : null}
       </section>
 
 

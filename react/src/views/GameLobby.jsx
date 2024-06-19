@@ -2,13 +2,11 @@ import { useContext, useEffect, useReducer, useState } from "react";
 import { ContextData, PAGE_GAME, socket } from "../App";
 import Loading from "../components/Loading";
 import Player from "../classes/player";
-7
+
 function GameLobby() {
 
     // get gameoptions that were saved from GameOptions Page in global variable
     const { gameoptions, setPage, setGameOptions } = useContext(ContextData);
-
-
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
     const [countdown, setCountdown] = useState(10);
@@ -57,19 +55,23 @@ function GameLobby() {
     useEffect(() => {
 
         // when message comes in data = {chat: {name, message}}
-        socket.on('onchat', (data) => dispatch({ chat: data.chat }));
+        const onChat = (data) => dispatch({ chat: data.chat })
+        socket.on('onchat', onChat);
 
         // when player joins room
-        socket.on('onjoin', (data) => dispatch({ player: data }));
+        const onJoin = (data) => dispatch({ player: data })
+        socket.on('onjoin', onJoin);
 
         // when player joins room
-        socket.on('onready', (data) => dispatch({ ready: data.ready, socketId: data.socketId }));
+        const onReady = (data) => dispatch({ ready: data.ready, socketId: data.socketId })
+        socket.on('onready', onReady);
 
         // when player disconnects from server
-        socket.on('ondisconnected', (socketId) => dispatch({ disconnected: socketId }))
+        const onDisconnected = (socketId) => dispatch({ disconnected: socketId })
+        socket.on('ondisconnected', onDisconnected)
 
         // there a count down timer in the backend so this will listen for the each second on the count down
-        socket.on('onloadgame', (data) => {
+        const onLoadGame = (data) => {
             const {
                 countdown,
                 players,
@@ -79,6 +81,7 @@ function GameLobby() {
                 cardIndexOnTable,
                 startpoints
             } = data;
+
 
             // start the defining game settings when player option shows up
             if (players) {
@@ -100,7 +103,18 @@ function GameLobby() {
 
             // start loading
             setLoading(true);
-        })
+        }
+        socket.on('onloadgame', onLoadGame)
+
+
+        // on dismount remove listeners
+        return () => {
+            socket.off('onchat', onChat);
+            socket.off('onjoin', onJoin);
+            socket.off('onready', onReady);
+            socket.off('onloadgame', onLoadGame)
+            socket.off('ondisconnected', onDisconnected)
+        }
     }, []);
 
 
@@ -172,7 +186,7 @@ function GameLobby() {
                 </h4>
 
                 {/* Players */}
-                <h6>You</h6>
+                <h6>You: {gameoptions.playername}</h6>
                 {gameoptions.npcs.map(name => <h6 key={name}>{name}</h6>)}
                 {state.players.map((player) =>
                     <h6 key={player.socketId}>
