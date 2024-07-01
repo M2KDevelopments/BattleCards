@@ -95,8 +95,9 @@ exports.onConnection = (socket) => {
     let counter = 0;
     const timer = setInterval(() => {
       counter++;// increment time
-      socket.to(roomId).emit("ontime", gameTime - counter);
-      socket.emit("ontime", gameTime - counter);
+      const gameOver = counter >= gameTime;
+      socket.to(roomId).emit("ontime", gameTime - counter, gameOver);
+      socket.emit("ontime", gameTime - counter, gameOver);
       if (counter >= gameTime) clearInterval(timer);
     }, 1000)
   });

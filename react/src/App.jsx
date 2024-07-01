@@ -1,7 +1,5 @@
 import { createContext, useEffect, useState } from "react"
 import MainMenu from "./views/MainMenu";
-import GameOver from "./views/GameOver";
-import GameResults from "./views/GameResults";
 import BattleCards from "./views/BattleCards";
 import GameOptions from "./views/GameOptions";
 import Settings from "./views/Settings";
@@ -23,9 +21,7 @@ export const PAGE_MENU = 0,
   PAGE_GAMEOPTIONS = 3,
   PAGE_GAMELOBBY = 4,
   PAGE_GAME = 5,
-  PAGE_RESULTS = 6,
-  PAGE_GAMEOVER = 7,
-  PAGE_JOINGAME = 8;
+  PAGE_JOINGAME = 6;
 
 
 export const ContextData = createContext({
@@ -100,9 +96,6 @@ function App() {
         {page === PAGE_GAMELOBBY && <GameLobby />}
         {page === PAGE_JOINGAME && <GameJoin joinRoomId={joinRoomId} />}
         {page === PAGE_GAME && <BattleCards />}
-        {page === PAGE_RESULTS && <GameResults />}
-        {page === PAGE_GAMEOVER && <GameOver />}
-
       </main>
     </ContextData.Provider>
   )

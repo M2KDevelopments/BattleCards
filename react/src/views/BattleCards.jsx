@@ -1,21 +1,28 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState, useCallback } from "react"
 import { ContextData, socket } from "../App"
 import { Card } from "../classes/card";
 import PlayingCard from '../components/PlayingCard'
 
+
+
 // the number seconds a player has to make a play.
 const PLAYER_PLAY_TIME = 15;
+
+
 
 
 function BattleCards() {
 
   // get gameoptions that were saved from GameOptions Page in global variable
   const { gameoptions } = useContext(ContextData);
-  
+
   // game modes
   const [clockwise, setClockwise] = useState(true);
   const [lightMode, setLightMode] = useState(true);
+  const [battleMode, setBattleMode] = useState(false);
+  const [colorDemand, setColorDemand] = useState("");
+  const [gameOver, setGameOver] = useState(false);
 
   // time
   const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
@@ -41,6 +48,7 @@ function BattleCards() {
 
 
 
+  // initialize game timer
   useEffect(() => {
     // tell backend to start a set interval timer
     if (gameoptions.host) socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime);
@@ -55,11 +63,14 @@ function BattleCards() {
       const playerCount = gameoptions.game.players.length;
       const index = currentPlayerIndex;
       const room = gameoptions.roomId;
-      socket.emit('playertime', room, playerTime, index, playerCount);
+      if (!gameOver) socket.emit('playertime', room, playerTime, index, playerCount);
     }, 1000);
 
     // game timer
-    const onTimer = (time) => setGameTime(time);
+    const onTimer = (time, gameover) => {
+      if (time > 0) setGameTime(time);
+      if (gameover) setGameOver(true);
+    }
     socket.on('ontime', onTimer);
 
 
@@ -145,7 +156,7 @@ function BattleCards() {
       socket.off('onplaycard', onPlayCards);
       clearInterval(t)
     }
-  }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions])
+  }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions, gameOver])
 
 
   const onScoreCheck = () => {
@@ -153,6 +164,10 @@ function BattleCards() {
   }
 
   const onTalk = () => {
+
+  }
+
+  const onFlipCards = () => {
 
   }
 
@@ -165,6 +180,9 @@ function BattleCards() {
    * Pick a card on the table.
    */
   const onPick = () => {
+
+    // game is over
+    if (gameOver) return;
 
     // not your turn
     if (meIndex != currentPlayerIndex) return;
@@ -215,18 +233,14 @@ function BattleCards() {
    */
   const onPlayCard = (card) => {
 
+    // game is over
+    if (gameOver) return;
+
     // not your turn
     if (meIndex != currentPlayerIndex) return;
 
-    // Todo Checks
-    // if the current card is an iwant
-    // if the current card is a jump
-    // if the current card is a jumpcolor
-    // if the current card is a reverse
-    // if the current card is a reversecolor
-    // if the current card is a flip
-    // if the current card is a pick
-    // if the current card is a number
+    // if card is playable
+    if (!playableFilter(card)) return alert("Cannot play this card");
 
     // play the card
     const data = {
@@ -236,6 +250,7 @@ function BattleCards() {
       playerCount: players.length,
       more: false, // more is to let the other players that you are still playing
     }
+
     socket.emit('playcard', data, (cardIndex, playerIndex, newPlayerIndex) => {
       players[playerIndex].cards.delete(cardIndex);
       setPlayers([...players])
@@ -252,6 +267,80 @@ function BattleCards() {
     });
 
   }
+
+
+  const onStartNewGame = () => {
+    socket.emit('resetgame', gameoptions.roomId, gameoptions.game.gametime, () => {
+      
+      // reset game time.
+      setGameTime(gameoptions.game.gametime)
+
+      // index of player who won
+      setCurrentPlayerIndex(0);
+
+      // shuffle & distrubute the cards 
+
+
+      setGameOver(false);
+    });
+
+  }
+
+
+
+  const playableFilter = useCallback((playcard) => {
+
+    // get card in hand and playable
+    const card = lightMode ? playcard : darkCards[playcard.darkId];
+    const tableCard = lightMode ? currentCard : darkCards[currentCard.darkId];
+
+    // if the game is in battle mode
+    if (battleMode) return true;
+
+    // logic to filter the cards
+    if (tableCard.type === "reversecolor") {
+      if (card.type === "number" && card.color != tableCard.color) return false;
+      else if (card.type == "jumpcolor" && card.value !== tableCard.value) return false;
+
+    } else if (tableCard.type === "jumpcolor") {
+
+      if (card.type === "number" && card.color != tableCard.color) return false;
+      else if (card.type == "reversecolor" && card.value !== tableCard.value) return false;
+
+    } else if (tableCard.type === "number") {
+
+      if (card.type === "number") {
+        if (card.value != tableCard.value && card.color != tableCard.color) return false;
+      }
+      else if (card.type == "reversecolor" && card.value !== tableCard.color) return false;
+      else if (card.type == "jumpcolor" && card.value !== tableCard.color) return false;
+
+    } else if (tableCard.type === "iwant" && colorDemand) {
+      if (card.type === "number" && card.value !== colorDemand) return false;
+      else if (card.type == "reversecolor" && card.value !== colorDemand) return false;
+      else if (card.type == "jumpcolor" && card.value !== colorDemand) return false;
+    }
+
+    return true;
+  }, [currentCard, colorDemand, battleMode, lightMode, darkCards])
+
+
+
+  // On Game Over
+  if (gameOver) {
+    return (
+      <div className="w-screen h-screen flex flex-col">
+        <h1>Game Over</h1>
+        {gameoptions.host ? <button onClick={onStartNewGame}>Start New Game</button> : null}
+        {
+          players.map(player =>
+            <div key={player.id}>{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</div>
+          )
+        }
+      </div>
+    )
+  }
+
 
 
   return (
@@ -324,6 +413,7 @@ function BattleCards() {
         <div className="flex gap-4 justify-center items-center">
           <button onClick={onScoreCheck} title="Score Check" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📃 Score</button>
           <button onClick={onTalk} title="Talk" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Talk</button>
+          <button onClick={onFlipCards} title="Flip Cards" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Flip</button>
           <button onClick={onLeave} title="Leave" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📴 Leave</button>
         </div>
       </div>
