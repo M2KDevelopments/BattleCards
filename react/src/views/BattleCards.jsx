@@ -1,123 +1,151 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useMemo, useReducer, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { ContextData, socket } from "../App"
 import { Card } from "../classes/card";
 import PlayingCard from '../components/PlayingCard'
+
+// the number seconds a player has to make a play.
+const PLAYER_PLAY_TIME = 15;
+
 
 function BattleCards() {
 
   // get gameoptions that were saved from GameOptions Page in global variable
   const { gameoptions } = useContext(ContextData);
-
-  // initialize game
-  const [players, setPlayers] = useState(gameoptions.game.players);
-  const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
-  const [playerTime, setPlayerTime] = useState(15);
-  const [cardIndexOnTable, setCardIndexOnTable] = useState(gameoptions.game.cardIndexOnTable);
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  
+  // game modes
   const [clockwise, setClockwise] = useState(true);
   const [lightMode, setLightMode] = useState(true);
+
+  // time
+  const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
+  const [playerTime, setPlayerTime] = useState(PLAYER_PLAY_TIME); // updated in the dispatch reducer function
 
   // cards
   const [lightCards, setLightCards] = useState(gameoptions.game.lightCards)
   const darkCards = useMemo(() => gameoptions.game.darkCards, [gameoptions.game.darkCards])
+  const [cardIndexOnTable, setCardIndexOnTable] = useState(gameoptions.game.cardIndexOnTable);
+  const [cardsOnTable, setCardsOnTable] = useState(new Set());
+
+  //players 
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [players, setPlayers] = useState(gameoptions.game.players)
 
   // get index of this player
   const meIndex = useMemo(() => players.findIndex(p => p.id == socket.id), [players])
-
-
-  const cards = useMemo(() => {
-    return players[meIndex].getCards(lightCards, darkCards, lightMode);
-  }, [players, meIndex, lightCards, darkCards, lightMode]);
-
-
+  const cards = useMemo(() => players[meIndex].getCards(lightCards, darkCards, lightMode), [players, meIndex, lightCards, darkCards, lightMode]);
   const currentCard = useMemo(() => {
     const l = lightCards[cardIndexOnTable];
     return new Card(l.index, l.type, l.value, l.color, l.battleValue, l.darkId);
   }, [lightCards, cardIndexOnTable])
 
 
-  // I'm using useReducer to avoid using too many useState variables in a useEffect
-  const reducer = (state, action) => {
-    if (action.nextplayer != undefined) {
 
-      // only host can send 
-      if (gameoptions.host) {
-        const plyrs = players.map(player =>
-          player.getJSON(lightCards, darkCards, lightMode)
-        )
-        const card = currentCard.getJSON();
-        const t = gameTime;
-        const r = gameoptions.roomId;
-        const data = {
-          roomId: gameoptions.roomId,
-          index: action.nextplayer,
-          players: plyrs,
-          currentCard: currentCard,
-          gameTime: gameTime,
-          lightMode: lightMode
-        }
-        socket.emit('nextplayer', data)
-      }
-    }
-
-    if (action.pickcard) {
-      const { cardIndices, playerIndex } = action.pickcard;
-      players[playerIndex].addCards(...cardIndices);
-      setPlayers([...players]);
-    }
-
-    // add card to table
-    if (action.addcard) state.cardsOnTable.add(action.addcard)//addcard
-    return { ...state, }
-  }
-  const [state, dispatch] = useReducer(reducer, {
-    cardsOnTable: new Set()
-  });
-
-
-  // set interval for each player to update timer
   useEffect(() => {
-    if (gameoptions.host) socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime)
+    // tell backend to start a set interval timer
+    if (gameoptions.host) socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime);
   }, [gameoptions]);
-
-
-  // next player
-  useEffect(() => {
-    // should trigger on when the current player changes
-    dispatch({ nexplayer: currentPlayerIndex });
-  }, [currentPlayerIndex])
 
 
   // listen for websocket
   useEffect(() => {
 
+    // decrements playerTimer
+    const t = setInterval(() => {
+      const playerCount = gameoptions.game.players.length;
+      const index = currentPlayerIndex;
+      const room = gameoptions.roomId;
+      socket.emit('playertime', room, playerTime, index, playerCount);
+    }, 1000);
+
     // game timer
     const onTimer = (time) => setGameTime(time);
     socket.on('ontime', onTimer);
 
+
     // player timer
-    const onPlayerTimer = (time) => setPlayerTime(time);
+    const onPlayerTimer = (time, currentPlayer, nextPlayer) => {
+
+      // if the player time is up
+      if (time <= 0) {
+
+        // as punishment player has to pick a card for not playing
+        // dispatch({ punishment: { playerIndex: currentPlayer } });
+        // get all the cards in the players hands
+        const allCardsInHand = new Set();
+        for (const player of players) {
+          for (const cardIndex of Array.from(player.cards.values())) {
+            allCardsInHand.add(cardIndex)
+          }
+        }
+
+        // add all the unplayable cards in set
+        allCardsInHand.add(cardIndexOnTable);
+        for (const cardIndex of cardsOnTable) allCardsInHand.add(cardIndex);
+
+        // choose a card from list that is not in hand or on the table
+        const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+
+        // add card to player
+        players[currentPlayer].cards.add(cardIndex);
+        setPlayers([...players]);
+
+
+        // update time
+        setPlayerTime(PLAYER_PLAY_TIME);
+
+        // trigger next player
+        setCurrentPlayerIndex(nextPlayer);
+
+      } else setPlayerTime(time);// update time
+    }
     socket.on('onplayertime', onPlayerTimer);
 
+
+    // when a card is picked
     const onPickedCard = (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
 
-      // add cards to hand
-      const pickcard = { cardIndices, playerIndex: currentPlayerIndex }
-      dispatch({ pickcard });
+      // update player
+      for (const cardIndex of cardIndices) players[currentPlayerIndex].cards.add(cardIndex);
+      setPlayers([...players])
 
       // trigger next player
       setCurrentPlayerIndex(nextPlayerIndex);
+
+      // update time
+      setPlayerTime(PLAYER_PLAY_TIME);
+
     }
     socket.on('onpickcard', onPickedCard)
+
+
+    // when player has played card
+    const onPlayCards = (cardIndex, playerIndex, newPlayerIndex) => {
+      // updates player card in hand and table cards
+      cardsOnTable.add(cardIndex)
+      const newSetOfCards = new Set();
+      for (const i of Array.from(cardsOnTable.values())) newSetOfCards.add(i);
+      setCardsOnTable(newSetOfCards);
+
+      // update player
+      players[playerIndex].cards.delete(cardIndex);
+      setPlayers([...players])
+
+      setCurrentPlayerIndex(newPlayerIndex) // set new player
+      setCardIndexOnTable(cardIndex); // update new card
+      setPlayerTime(PLAYER_PLAY_TIME); // update time
+    }
+    socket.on('onplaycard', onPlayCards);
 
     // on dismount remove listener
     return () => {
       socket.off('ontimer', onTimer);
       socket.off('onplayertime', onPlayerTimer);
       socket.off('onpickcard', onPickedCard);
+      socket.off('onplaycard', onPlayCards);
+      clearInterval(t)
     }
-  }, [])
+  }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions])
 
 
   const onScoreCheck = () => {
@@ -133,6 +161,9 @@ function BattleCards() {
   }
 
 
+  /**
+   * Pick a card on the table.
+   */
   const onPick = () => {
 
     // not your turn
@@ -149,7 +180,7 @@ function BattleCards() {
 
     // add all the unplayable cards in set
     allCardsInHand.add(cardIndexOnTable);
-    for (const cardIndex of state.cardsOnTable) allCardsInHand.add(cardIndex);
+    for (const cardIndex of cardsOnTable) allCardsInHand.add(cardIndex);
 
     // choose a card from list that is not in hand or on the table
     const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
@@ -165,13 +196,60 @@ function BattleCards() {
 
     socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
 
-      // add cards to hand
-      const pickcard = { cardIndices, playerIndex: currentPlayerIndex }
-      dispatch({ pickcard });
+      // update player
+      players[currentPlayerIndex].addCards(...cardIndices);
+      setPlayers([...players]);
 
       // trigger next player
       setCurrentPlayerIndex(nextPlayerIndex);
+
+      // update time
+      setPlayerTime(PLAYER_PLAY_TIME);
     })
+
+  }
+
+  /**
+   * Play the choosen card in hand.
+   * @param {Card} card 
+   */
+  const onPlayCard = (card) => {
+
+    // not your turn
+    if (meIndex != currentPlayerIndex) return;
+
+    // Todo Checks
+    // if the current card is an iwant
+    // if the current card is a jump
+    // if the current card is a jumpcolor
+    // if the current card is a reverse
+    // if the current card is a reversecolor
+    // if the current card is a flip
+    // if the current card is a pick
+    // if the current card is a number
+
+    // play the card
+    const data = {
+      roomId: gameoptions.roomId,
+      card: card,
+      playerIndex: currentPlayerIndex,
+      playerCount: players.length,
+      more: false, // more is to let the other players that you are still playing
+    }
+    socket.emit('playcard', data, (cardIndex, playerIndex, newPlayerIndex) => {
+      players[playerIndex].cards.delete(cardIndex);
+      setPlayers([...players])
+
+      // updates player card in hand and table cards
+      cardsOnTable.add(cardIndex)
+      const newSetOfCards = new Set();
+      for (const i of Array.from(cardsOnTable.values())) newSetOfCards.add(i);
+      setCardsOnTable(newSetOfCards);
+
+      setCurrentPlayerIndex(newPlayerIndex) // set new player
+      setCardIndexOnTable(cardIndex); // update new card 
+      setPlayerTime(PLAYER_PLAY_TIME); // update time
+    });
 
   }
 
@@ -181,7 +259,7 @@ function BattleCards() {
 
       {/* Players' Info */}
       <section className="fixed top-0 left-0 w-screen">
-        <div>{clockwise ? "<<" : ">>"} Direction</div>
+        <div>{clockwise ? ">>" : "<<"} Direction</div>
         <div className="flex gap-2 p-3">
           {players
             .map((player, index) => {
@@ -198,8 +276,14 @@ function BattleCards() {
               </div>
             )}
         </div>
-        {currentPlayerIndex == meIndex ? <div>Your Turn</div> : null}
+        <div className="flex gap-5">
+          {currentPlayerIndex == meIndex ? <div>Your Turn</div> : null}
+          <div>{playerTime}s</div>
+        </div>
+        <div>Game Time: <div>{gameTime}s</div></div>
       </section>
+
+
 
 
       {/* Cards on the table */}
@@ -225,6 +309,7 @@ function BattleCards() {
         <div className="flex justify-center items-center gap-3 overflow-x-scroll w-[95vw]">
           {cards.map(card =>
             <PlayingCard
+              onPlay={() => onPlayCard(card)}
               key={card.index}
               isDark={card.isDark()}
               color={card.color}>
@@ -237,9 +322,9 @@ function BattleCards() {
       {/* Bottom buttons options */}
       <div className="w-screen max-h-[5vh] h-[5vh]">
         <div className="flex gap-4 justify-center items-center">
-          <button onClick={onScoreCheck} title="Score Check" className="text-md rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📃 Score</button>
-          <button onClick={onTalk} title="Talk" className="text-md rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Talk</button>
-          <button onClick={onLeave} title="Leave" className="text-md rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📴 Leave</button>
+          <button onClick={onScoreCheck} title="Score Check" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📃 Score</button>
+          <button onClick={onTalk} title="Talk" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Talk</button>
+          <button onClick={onLeave} title="Leave" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📴 Leave</button>
         </div>
       </div>
 

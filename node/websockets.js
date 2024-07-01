@@ -102,39 +102,14 @@ exports.onConnection = (socket) => {
   });
 
 
+  // get the time of the current player
+  socket.on('playertime', (roomId, playerTimer, playerIndex, playerCount) => {
+    const currentPlayer = playerIndex;
+    const nextPlayer = (+playerIndex + 1) % playerCount;
+    socket.to(roomId).emit("onplayertime", playerTimer-1, currentPlayer, nextPlayer);
+    socket.emit("onplayertime", playerTimer-1, currentPlayer, nextPlayer);
+  })
 
-  // when the game timer starts
-  let playerTimer;
-  socket.on('nextplayer', (data) => {
-    const { roomId, index, players, currentCard, gameTime, lightMode } = data;
-    const player = players[index];
-
-    // if its an NPC
-    if (player.npc) {
-
-
-      // get all the cards in the players hands
-      const allCardsInHand = new Set();
-      for (const player of players) {
-        for (const card of player.cards) {
-          allCardsInHand.add(card.index)
-        }
-      }
-
-    } else { // if its a player
-
-      // send to everyone
-      let counter = 15;
-      playerTimer = setInterval(() => {
-        socket.to(roomId).emit("onplayertime", counter);
-        socket.emit("onplayertime", counter);
-        if (counter <= 0) {
-          clearInterval(playerTimer);
-        }
-        counter--;// decrement time
-      }, 1000);
-    }
-  });
 
 
   /***********************************
@@ -146,13 +121,27 @@ exports.onConnection = (socket) => {
   socket.on('pickcard', ({ roomId, cardIndices, playerIndex, playerCount }, callback) => {
     // send the cards to everyone that the current player picked
     // - cardIndices is an array of card index
-    if (playerTimer) clearInterval(playerTimer);
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount
     socket.to(roomId).emit("onpickcard", cardIndices, currentPlayer, nextPlayer);
     callback(cardIndices, currentPlayer, nextPlayer);
   });
 
+
+  socket.on('playcard', ({ roomId, card, playerIndex, playerCount, more, battleMode }, callback) => {
+    const currentPlayer = playerIndex;
+    const nextPlayer = more ? currentPlayer : (+playerIndex + 1) % playerCount;
+
+
+    // find out what kind of card it is - Todo
+    switch (card.type) {
+      default:
+        break;
+    }
+
+    socket.to(roomId).emit("onplaycard", card.index, currentPlayer, nextPlayer);
+    callback(card.index, currentPlayer, nextPlayer);
+  });
 
 
 
