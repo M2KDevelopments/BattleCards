@@ -121,14 +121,13 @@ export default class Player {
     * @returns value of points lost if the game where to end now.
     */
     getPotentialGameEndDamage(lightCards, darkCards) {
-        var total = 0;
+        let total = 0;
         for (const index of Array.from(this.cards.values())) {
             const card = darkCards[lightCards[index].darkId];
             total += card.battleValue;
         }
         return total;
     }
-
 
     /**
      * Return an array of the possible cards to be played
@@ -179,6 +178,7 @@ export default class Player {
             allancies: Array.from(this.allancies.values()),
             revengeId: this.revengeId,
             score: this.score,
+            damage: this.getPotentialGameEndDamage(lightCards, darkCards),
             hurtByPlayers: Array.from(this.hurtByPlayers.values())
         }
     }

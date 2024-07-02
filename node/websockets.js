@@ -55,7 +55,11 @@ exports.onConnection = (socket) => {
 
 
   // when player clicks the ready button
-  socket.on('loadgame', ({ roomId, decks, area, npcs, players, playername }, callback) => {
+  socket.on('loadgame', (data, callback) => {
+
+    // get data coming from frontend
+    const { roomId, decks, area, npcs, players, playername, gametime, startpoints, anothergame } = data;
+
 
     // send countdown messages to everyone
     const maxCount = 10;
@@ -74,7 +78,9 @@ exports.onConnection = (socket) => {
         // distribute cards
         // choose 1st card on the table
         // send state of the game to all players.
-        const settings = BattleCards.createGame({ decks, area, npcs, players, playername }, counter, socket.id);
+        const p = !anothergame ? [...players, { name: playername, socketId: socket.id }] : players
+        const settings = BattleCards.createGame({ decks, area, npcs, players: p, gametime, startpoints }, counter);
+       
         socket.to(roomId).emit("onloadgame", settings);
         socket.emit("onloadgame", settings);
       }
@@ -107,8 +113,8 @@ exports.onConnection = (socket) => {
   socket.on('playertime', (roomId, playerTimer, playerIndex, playerCount) => {
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount;
-    socket.to(roomId).emit("onplayertime", playerTimer-1, currentPlayer, nextPlayer);
-    socket.emit("onplayertime", playerTimer-1, currentPlayer, nextPlayer);
+    socket.to(roomId).emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
+    socket.emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
   })
 
 

@@ -1,14 +1,13 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useMemo, useState, useCallback } from "react"
-import { ContextData, socket } from "../App"
+import { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { ContextData, socket } from "../App";
 import { Card } from "../classes/card";
-import PlayingCard from '../components/PlayingCard'
-
-
+import PlayingCard from '../components/PlayingCard';
+import Player from "../classes/player";
+import Loading from "../components/Loading";
 
 // the number seconds a player has to make a play.
 const PLAYER_PLAY_TIME = 15;
-
 
 
 
@@ -23,6 +22,7 @@ function BattleCards() {
   const [battleMode, setBattleMode] = useState(false);
   const [colorDemand, setColorDemand] = useState("");
   const [gameOver, setGameOver] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   // time
   const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
@@ -30,7 +30,7 @@ function BattleCards() {
 
   // cards
   const [lightCards, setLightCards] = useState(gameoptions.game.lightCards)
-  const darkCards = useMemo(() => gameoptions.game.darkCards, [gameoptions.game.darkCards])
+  const [darkCards, setDarkCards] = useState(gameoptions.game.darkCards)
   const [cardIndexOnTable, setCardIndexOnTable] = useState(gameoptions.game.cardIndexOnTable);
   const [cardsOnTable, setCardsOnTable] = useState(new Set());
 
@@ -44,15 +44,18 @@ function BattleCards() {
   const currentCard = useMemo(() => {
     const l = lightCards[cardIndexOnTable];
     return new Card(l.index, l.type, l.value, l.color, l.battleValue, l.darkId);
-  }, [lightCards, cardIndexOnTable])
-
-
+  }, [lightCards, cardIndexOnTable]);
+  
 
   // initialize game timer
   useEffect(() => {
     // tell backend to start a set interval timer
     if (gameoptions.host) socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime);
   }, [gameoptions]);
+
+
+  // listen for player change
+  useEffect(() => {}, [currentPlayerIndex])
 
 
   // listen for websocket
@@ -148,12 +151,60 @@ function BattleCards() {
     }
     socket.on('onplaycard', onPlayCards);
 
+
+    // there a count down timer in the backend so this will listen for the each second on the count down
+    const onLoadGame = (data) => {
+      const {
+        countdown,
+        players,
+        area,
+        gametime,
+        cards, // {lightCards, darkCards}
+        cardIndexOnTable,
+        startPlayerIndex,
+      } = data;
+
+
+      // start the defining game settings when player option shows up
+      if (players) {
+
+        // setup the game options for each player
+        const ps = players.map(p => new Player(p.id, p.name, p.npc, p.score, p.cards));
+        setPlayers(ps);
+        setLightCards(cards.lightCards)
+        setDarkCards(cards.darkCards)
+        setCardIndexOnTable(cardIndexOnTable) // main card on the table
+        setCurrentPlayerIndex(startPlayerIndex);// index of player who won
+        setGameTime(gametime)// reset game time.
+      }
+
+      // start game
+      setCountdown(countdown);
+      if (countdown === 0) {
+
+        // default settings for the game
+        setClockwise(true);
+        setLightMode(false);
+        setBattleMode(false);
+        setColorDemand("");
+        setCardsOnTable(new Set())
+        setPlayerTime(PLAYER_PLAY_TIME);
+        setCountdown(0);
+
+        // reset UI to go back to game
+        setGameOver(false);
+      }
+
+    }
+    socket.on('onloadgame', onLoadGame);
+
     // on dismount remove listener
     return () => {
       socket.off('ontimer', onTimer);
       socket.off('onplayertime', onPlayerTimer);
       socket.off('onpickcard', onPickedCard);
       socket.off('onplaycard', onPlayCards);
+      socket.off('onloadgame', onLoadGame)
       clearInterval(t)
     }
   }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions, gameOver])
@@ -270,18 +321,12 @@ function BattleCards() {
 
 
   const onStartNewGame = () => {
-    socket.emit('resetgame', gameoptions.roomId, gameoptions.game.gametime, () => {
-      
-      // reset game time.
-      setGameTime(gameoptions.game.gametime)
 
-      // index of player who won
-      setCurrentPlayerIndex(0);
-
-      // shuffle & distrubute the cards 
-
-
-      setGameOver(false);
+    // shuffle & distrubute the cards 
+    const options = { ...gameoptions, anothergame: true, players: players.map(p => p.getJSON(lightCards, darkCards, true)), };
+    socket.emit('loadgame', options, () => {
+      // tell backend to start a set interval timer
+      socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime + 15);
     });
 
   }
@@ -330,12 +375,31 @@ function BattleCards() {
   if (gameOver) {
     return (
       <div className="w-screen h-screen flex flex-col">
-        <h1>Game Over</h1>
-        {gameoptions.host ? <button onClick={onStartNewGame}>Start New Game</button> : null}
-        {
-          players.map(player =>
-            <div key={player.id}>{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</div>
-          )
+        {countdown ? <Loading countDown={countdown} /> :
+
+          // Game Over Screen
+          <div>
+            <h1>Game Over</h1>
+            {gameoptions.host ? <button onClick={onStartNewGame}>Start New Game</button> : null}
+            {players.map(player =>
+              <div key={player.id} className="flex flex-col gap-3">
+                <span>{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
+                <div className="flex gap-4"> 
+                  {player.getCards(lightCards, darkCards, false).map((card, i) =>
+                    <div key={i} className="flex flex-col gap-3">
+                      <PlayingCard
+                        title={card.battleValue}
+                        isDark={card.isDark()}
+                        color={card.color}>
+                        {card.getText()}
+                      </PlayingCard>
+                      <div>DMG: {card.battleValue}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         }
       </div>
     )
@@ -359,7 +423,7 @@ function BattleCards() {
               <div
                 className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
                 style={{ border: player.playing ? "2px solid gold" : player.me ? "2px solid cyan" : undefined }}
-                title={player.name}
+                title={player.name + " (" + player.score + "pts)"}
                 key={player.id}>
                 {player.name}
               </div>

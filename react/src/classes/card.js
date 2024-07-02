@@ -56,6 +56,20 @@ export class Card {
 
     }
 
+    /**
+  * Get card battle value
+  * @param {Array<Card>} darkCards 
+  * Get card battle value
+  */
+    getBattleValue(darkCards) {
+        try {
+            return darkCards[this.darkId].battleValue;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+
     getJSON() {
         return {
             darkId: this.darkId,

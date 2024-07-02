@@ -16,8 +16,10 @@ export default function GameOptions() {
   const [npcPlayers, setNpcPlayers] = useState([]);
 
   // page and gameoptions
-  const { setPage, setGameOptions } = useContext(ContextData);
+  const { setPage, gameoptions, setGameOptions } = useContext(ContextData);
 
+  const [gameTime, setGameTime] = useState(gameoptions.gametime);
+  const [score, setScore] = useState(gameoptions.startpoints)
 
 
   // Get Npcs from backend
@@ -69,7 +71,10 @@ export default function GameOptions() {
       decks: numberOfDecks,
       roomId: "room" + socket.id,
       host: true,
+      gametime: gameTime,
+      startpoints: score
     }
+
 
     // check player name was entered
     if (playername.trim() == '') return alert("Please enter a name");
@@ -95,6 +100,9 @@ export default function GameOptions() {
 
       <h6>Player Name</h6>
       <input type='name' placeholder='Player Name' value={playername} onChange={e => setPlayername(e.target.value)} />
+
+      <input type='number' min={60} max={10000} placeholder='Game Time' value={gameTime} onChange={e => setGameTime(e.target.value)} />
+      <input type='number' min={200} max={10000} placeholder='Starting Score' value={score} onChange={e => setScore(e.target.value)} />
 
       {/* Showing NPCs chosen */}
       {npcPlayers.map(npc =>

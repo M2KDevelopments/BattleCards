@@ -8,21 +8,40 @@ const colors = require('./jsons/colors.json')
  * @param {*} gameoptions - options chosen by the host player 
  * @returns the game settings for a fresh game. Players, cards, area, etc
  */
-exports.createGame = function (gameoptions, counter, hostSocketId) {
+exports.createGame = function (gameoptions, counter) {
 
-    const { decks, area, npcs, players, playername } = gameoptions
-    const gametime = 300;
+
+    const { decks, area, npcs, players, gametime, startpoints } = gameoptions
+    // if a player has score that meean a game has already 
+    // been player the score field was added to the player
+    const goingToAnotherGame = players[0].score;
+
+    // the player who won the last game
+    // the player with the lowest damage score
+    // if its a very new game the just make it the first player
+    const p = goingToAnotherGame ? players.sort((a, b) => a.damage - b.damage)[0] : players[0];
+    const startPlayerIndex = players.indexOf(p);
+
+
+    // other game settings
     const numberOfCardsPerGame = 7;
-    const startpoints = 1000;
-    const allplayers = getShuffledPlayers(npcs, [...players, { name: playername, socketId: hostSocketId }]);
+    const allplayers = goingToAnotherGame ? players : getShuffledPlayers(npcs, players);
     const cards = getShuffledCards(decks);
+
 
     // distrubute the cards
     let cardIndex = 0;
     for (const index in allplayers) {
-        for (let i = 0; i < numberOfCardsPerGame; i++) {
-            allplayers[index].cards.push(cardIndex++)
-        }
+
+        // make sure you have empty array of cards
+        allplayers[index].cards = [];
+
+        // if going to another game minus the points lose
+        if (goingToAnotherGame) allplayers[index].score -= allplayers[index].damage;
+        else allplayers[index].score = startpoints || 1000;
+
+        // add cards to players hand
+        for (let i = 0; i < numberOfCardsPerGame; i++) allplayers[index].cards.push(cardIndex++)
     }
 
 
@@ -34,10 +53,11 @@ exports.createGame = function (gameoptions, counter, hostSocketId) {
         countdown: counter,
         players: allplayers,
         area,
-        gametime,
+        gametime: gametime || 300,
         cards, // {lightCards, darkCards}
         cardIndexOnTable,
-        startpoints
+        startpoints: startpoints || 1000,
+        startPlayerIndex
     };
 
 
@@ -87,9 +107,11 @@ function getShuffledPlayers(npcs, players) {
  */
 function getShuffledCards(decks) {
     const cards = []; // will put all the light mode cards in here in the correct order;
+    const cards_dark = [];
 
     const lightCards = [];
     const darkCards = [];
+
 
     // System check if the number dark mode cards available match the number of light mode cards available
     let lightCount = 0;
@@ -101,7 +123,7 @@ function getShuffledCards(decks) {
     if (lightCount != darkCount) {
         console.error("Error >> Light mode cards are not equal to dark mode cards");
         console.error("Error >> Change the special cards json", 'Light:', lightCount, '!= Dark:', darkCount);
-        return { lightCards, darkCards };
+        return { lightCards, darkCards: cards_dark };
     }
 
 
@@ -110,7 +132,7 @@ function getShuffledCards(decks) {
         for (const color of colors) {
             for (let j = 0; j < 9; j++) {
                 cards.push({ type: "number", value: j + 1, color, battleValue: j + 1 })
-                darkCards.push({ type: "number", value: j + 1, color, battleValue: j + 1 })
+                cards_dark.push({ type: "number", value: j + 1, color, battleValue: j + 1 })
             };
         }
     }
@@ -126,9 +148,22 @@ function getShuffledCards(decks) {
                 // so update any special card will update the duplicates
                 if (specialCard.light) cards.push({ ...specialCard });
 
-                if (specialCard.dark) darkCards.push({ ...specialCard });
+                if (specialCard.dark) cards_dark.push({ ...specialCard });
             }
         }
+    }
+
+    //randomize the dark cards
+    while (cards_dark.length) {
+
+        // get random index of cards to choose
+        const index = parseInt(Math.random() * cards_dark.length);
+
+        // remove card from map
+        const [selectedCard] = cards_dark.splice(index, 1);
+
+        darkCards.push(selectedCard);
+
     }
 
 
@@ -149,7 +184,7 @@ function getShuffledCards(decks) {
 
     }
 
-    return { lightCards, darkCards };
+    return { lightCards, darkCards  };
 }
 
 

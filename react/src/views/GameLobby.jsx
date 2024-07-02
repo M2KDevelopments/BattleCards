@@ -79,7 +79,6 @@ function GameLobby() {
                 gametime,
                 cards, // {lightCards, darkCards}
                 cardIndexOnTable,
-                startpoints
             } = data;
 
 
@@ -90,9 +89,8 @@ function GameLobby() {
                     ...cards, // lightCards, darkCards
                     area,
                     gametime,
-                    startpoints,
                     cardIndexOnTable,
-                    players: players.map(p => new Player(p.id, p.name, p.npc, startpoints, p.cards))
+                    players: players.map(p => new Player(p.id, p.name, p.npc, p.score, p.cards))
                 }
 
                 // setup the game options for each player
@@ -162,10 +160,8 @@ function GameLobby() {
 
     const onStart = () => {
         // show loading animations
-        socket.emit('loadgame', {
-            ...gameoptions,
-            players: state.players,
-        }, () => setLoading(true));
+        const options = { ...gameoptions, players: state.players, newgame: true };
+        socket.emit('loadgame', options, () => setLoading(true));
     }
 
 
