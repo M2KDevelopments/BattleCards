@@ -40,12 +40,12 @@ export const ContextData = createContext({
     decks: 3,
     roomId: "",
     host: false,
-    gametime: 15, 
-    startpoints: 500,
+    gametime: 300,
+    startpoints: 1000,
     // a copy of the settings for the main game for each player. Defined in GameLobby.jsx
     game: {
       players: [new Player()], area: "", cardIndexOnTable: -1,
-      lightCards: [], darkCards: [], gametime: 60, startpoints: 500//gametime: 300, startpoints: 1000
+      lightCards: [], darkCards: [],
     }
   },
   setGameOptions: (settings) => settings
@@ -64,12 +64,12 @@ function App() {
     decks: 3,
     roomId: "",
     host: false,
-    gametime: 5, 
-    startpoints: 500,
+    gametime: 300,
+    startpoints: 1000,
     // a copy of the settings for the main game for each player. Defined in GameLobby.jsx
     game: {
       players: [new Player()], area: "", cardIndexOnTable: -1,
-      lightCards: [], darkCards: [], gametime: 60, startpoints: 500//gametime: 300, startpoints: 1000
+      lightCards: [], darkCards: [],
     }
   });
 

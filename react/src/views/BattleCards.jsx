@@ -23,6 +23,7 @@ function BattleCards() {
   const [colorDemand, setColorDemand] = useState("");
   const [gameOver, setGameOver] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [cardsToPick, setCardsToPick] = useState(0);
 
   // time
   const [gameTime, setGameTime] = useState(gameoptions.game.gametime);
@@ -45,7 +46,7 @@ function BattleCards() {
     const l = lightCards[cardIndexOnTable];
     return new Card(l.index, l.type, l.value, l.color, l.battleValue, l.darkId);
   }, [lightCards, cardIndexOnTable]);
-  
+
 
   // initialize game timer
   useEffect(() => {
@@ -55,7 +56,7 @@ function BattleCards() {
 
 
   // listen for player change
-  useEffect(() => {}, [currentPlayerIndex])
+  useEffect(() => { }, [currentPlayerIndex])
 
 
   // listen for websocket
@@ -66,7 +67,16 @@ function BattleCards() {
       const playerCount = gameoptions.game.players.length;
       const index = currentPlayerIndex;
       const room = gameoptions.roomId;
-      if (!gameOver) socket.emit('playertime', room, playerTime, index, playerCount);
+      if (!gameOver) socket.emit('playertime', {
+        roomId: room,
+        playerTimer: playerTime,
+        playerIndex: index,
+        playerCount,
+        clockwise,
+        battleMode,
+        lightMode,
+        cardsToPick
+      });
     }, 1000);
 
     // game timer
@@ -134,7 +144,16 @@ function BattleCards() {
 
 
     // when player has played card
-    const onPlayCards = (cardIndex, playerIndex, newPlayerIndex) => {
+    const onPlayCards = (cardIndex, playerIndex, newPlayerIndex, gamestate) => {
+      // { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick } = gamestate
+
+      // update game state
+      setClockwise(gamestate.clockwise);
+      setLightMode(gamestate.lightMode);
+      setBattleMode(gamestate.battleMode);
+      setCardsToPick(gamestate.cardsToPick);
+
+
       // updates player card in hand and table cards
       cardsOnTable.add(cardIndex)
       const newSetOfCards = new Set();
@@ -184,7 +203,7 @@ function BattleCards() {
 
         // default settings for the game
         setClockwise(true);
-        setLightMode(false);
+        setLightMode(true);
         setBattleMode(false);
         setColorDemand("");
         setCardsOnTable(new Set())
@@ -207,7 +226,7 @@ function BattleCards() {
       socket.off('onloadgame', onLoadGame)
       clearInterval(t)
     }
-  }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions, gameOver])
+  }, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise, battleMode, lightMode, cardsToPick])
 
 
   const onScoreCheck = () => {
@@ -259,7 +278,11 @@ function BattleCards() {
       roomId: gameoptions.roomId,
       cardIndices: [cardIndex],
       playerIndex: currentPlayerIndex,
-      playerCount: players.length
+      playerCount: players.length,
+      clockwise,
+      battleMode,
+      lightMode,
+      cardsToPick
     }
 
 
@@ -299,10 +322,24 @@ function BattleCards() {
       card: card,
       playerIndex: currentPlayerIndex,
       playerCount: players.length,
-      more: false, // more is to let the other players that you are still playing
+
+      // game state
+      clockwise,
+      battleMode,
+      lightMode,
+      cardsToPick
+
     }
 
-    socket.emit('playcard', data, (cardIndex, playerIndex, newPlayerIndex) => {
+    socket.emit('playcard', data, (cardIndex, playerIndex, newPlayerIndex, gamestate) => {
+      // { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick } = gamestate
+
+      // update game state
+      setClockwise(gamestate.clockwise);
+      setLightMode(gamestate.lightMode);
+      setBattleMode(gamestate.battleMode);
+      setCardsToPick(gamestate.cardsToPick)
+
       players[playerIndex].cards.delete(cardIndex);
       setPlayers([...players])
 
@@ -384,7 +421,7 @@ function BattleCards() {
             {players.map(player =>
               <div key={player.id} className="flex flex-col gap-3">
                 <span>{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
-                <div className="flex gap-4"> 
+                <div className="flex gap-4">
                   {player.getCards(lightCards, darkCards, false).map((card, i) =>
                     <div key={i} className="flex flex-col gap-3">
                       <PlayingCard
@@ -408,7 +445,7 @@ function BattleCards() {
 
 
   return (
-    <div className="w-screen h-screen flex flex-col">
+    <div style={{ background: lightMode ? undefined : "darkgray" }} className="w-screen h-screen flex flex-col">
 
       {/* Players' Info */}
       <section className="fixed top-0 left-0 w-screen">

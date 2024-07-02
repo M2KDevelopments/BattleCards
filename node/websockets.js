@@ -80,7 +80,7 @@ exports.onConnection = (socket) => {
         // send state of the game to all players.
         const p = !anothergame ? [...players, { name: playername, socketId: socket.id }] : players
         const settings = BattleCards.createGame({ decks, area, npcs, players: p, gametime, startpoints }, counter);
-       
+
         socket.to(roomId).emit("onloadgame", settings);
         socket.emit("onloadgame", settings);
       }
@@ -110,7 +110,8 @@ exports.onConnection = (socket) => {
 
 
   // get the time of the current player
-  socket.on('playertime', (roomId, playerTimer, playerIndex, playerCount) => {
+  socket.on('playertime', (data) => {
+    const { roomId, playerTimer, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount;
     socket.to(roomId).emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
@@ -125,9 +126,10 @@ exports.onConnection = (socket) => {
 
 
   // when a player picks a card.
-  socket.on('pickcard', ({ roomId, cardIndices, playerIndex, playerCount }, callback) => {
+  socket.on('pickcard', (data, callback) => {
     // send the cards to everyone that the current player picked
     // - cardIndices is an array of card index
+    const { roomId, cardIndices, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount
     socket.to(roomId).emit("onpickcard", cardIndices, currentPlayer, nextPlayer);
@@ -135,19 +137,47 @@ exports.onConnection = (socket) => {
   });
 
 
-  socket.on('playcard', ({ roomId, card, playerIndex, playerCount, more, battleMode }, callback) => {
+  socket.on('playcard', (data, callback) => {
+
+    const { roomId, card, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
     const currentPlayer = playerIndex;
-    const nextPlayer = more ? currentPlayer : (+playerIndex + 1) % playerCount;
 
-
-    // find out what kind of card it is - Todo
-    switch (card.type) {
-      default:
-        break;
+    // default next player
+    let nextPlayer = (+playerIndex + 1) % playerCount;
+    if (!clockwise) {
+      if (playerIndex - 1 < 0) nextPlayer = playerCount - 1;
+      else nextPlayer -= 1;
     }
 
-    socket.to(roomId).emit("onplaycard", card.index, currentPlayer, nextPlayer);
-    callback(card.index, currentPlayer, nextPlayer);
+    // its still the current players turn
+    const gamestate = { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick }
+
+    // 
+    if (card.type === "reversecolor") { // if it is a card that needs another supporting cards
+
+      gamestate.clockwise = !clockwise;
+      if (!battleMode) nextPlayer = currentPlayer;
+
+    } else if (card.type === "reverse") { // reverse the direction of players turn
+      gamestate.clockwise = !clockwise;
+    } else if (card.type === "jump" || card.type === "jumpcolor") { // skip a player
+      // skip the next player
+      if (clockwise) nextPlayer = (+playerIndex + 2) % playerCount;
+      else {
+        if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
+        else nextPlayer -= 2;
+      }
+    } else if (card.type === "flip") { // toggle light/dark mode
+      gamestate.lightMode = !lightMode;
+    } else if (card.type === "pick") { // enter battle mode
+      // gamestate.battleMode = true;
+      // gamestate.cardsToPick += card.value;
+    } else if (card.type === "pickuntil") { // pick cards until you find a certain color.
+
+    }
+
+    socket.to(roomId).emit("onplaycard", card.index, currentPlayer, nextPlayer, gamestate);
+    callback(card.index, currentPlayer, nextPlayer, gamestate);
   });
 
 
