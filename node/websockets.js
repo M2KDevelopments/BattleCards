@@ -139,20 +139,19 @@ exports.onConnection = (socket) => {
 
   socket.on('playcard', (data, callback) => {
 
-    const { roomId, card, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
+    const { roomId, card, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick, noCards, colorDemand } = data;
     const currentPlayer = playerIndex;
 
     // default next player
     let nextPlayer = (+playerIndex + 1) % playerCount;
     if (!clockwise) {
       if (playerIndex - 1 < 0) nextPlayer = playerCount - 1;
-      else nextPlayer -= 1;
+      else nextPlayer = playerIndex - 1;
     }
 
     // its still the current players turn
-    const gamestate = { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick }
+    const gamestate = { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick, pickcard: false, colorDemand }
 
-    // 
     if (card.type === "reversecolor") { // if it is a card that needs another supporting cards
 
       gamestate.clockwise = !clockwise;
@@ -164,7 +163,8 @@ exports.onConnection = (socket) => {
       // skip the next player
       if (clockwise) nextPlayer = (+playerIndex + 2) % playerCount;
       else {
-        if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
+        if (playerCount == 2) nextPlayer = currentPlayer;// if there are only two players
+        else if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
         else nextPlayer -= 2;
       }
     } else if (card.type === "flip") { // toggle light/dark mode
@@ -173,7 +173,28 @@ exports.onConnection = (socket) => {
       // gamestate.battleMode = true;
       // gamestate.cardsToPick += card.value;
     } else if (card.type === "pickuntil") { // pick cards until you find a certain color.
+      // gamestate.battleMode = true;
+    }
 
+    if (noCards) {
+      if (card.type === "number") {
+        if (battleMode) {
+
+        } else {
+          // game over
+          socket.to(roomId).emit("ongameover");
+          socket.emit("ongameover");
+        }
+      } else {
+        if (!battleMode) {
+          // make it the current player so that the game make them pick a card
+          // after they automatically pick it will go to the next player
+          nextPlayer = currentPlayer;
+
+          // pick a card
+          gamestate.pickcard = true;
+        }
+      }
     }
 
     socket.to(roomId).emit("onplaycard", card.index, currentPlayer, nextPlayer, gamestate);
