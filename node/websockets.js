@@ -115,7 +115,7 @@ exports.onConnection = (socket) => {
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount;
     socket.to(roomId).emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
-    socket.emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
+    socket.emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer, cardsToPick);
   })
 
 
@@ -129,17 +129,25 @@ exports.onConnection = (socket) => {
   socket.on('pickcard', (data, callback) => {
     // send the cards to everyone that the current player picked
     // - cardIndices is an array of card index
-    const { roomId, cardIndices, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
+    const { roomId, cardIndices, playerIndex, playerCount, clockwise, continueBattle } = data;
     const currentPlayer = playerIndex;
-    const nextPlayer = (+playerIndex + 1) % playerCount
-    socket.to(roomId).emit("onpickcard", cardIndices, currentPlayer, nextPlayer);
-    callback(cardIndices, currentPlayer, nextPlayer);
+
+    // default next player
+    let nextPlayer = (+playerIndex + 1) % playerCount;
+    if (!clockwise) {
+      if (playerIndex - 1 < 0) nextPlayer = playerCount - 1;
+      else nextPlayer = playerIndex - 1;
+    }
+
+    socket.to(roomId).emit("onpickcard", cardIndices, currentPlayer, nextPlayer, continueBattle);
+    callback(cardIndices, currentPlayer, nextPlayer, continueBattle);
   });
 
 
   socket.on('playcard', (data, callback) => {
 
     const { roomId, card, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick, noCards, colorDemand } = data;
+
     const currentPlayer = playerIndex;
 
     // default next player
@@ -161,17 +169,19 @@ exports.onConnection = (socket) => {
       gamestate.clockwise = !clockwise;
     } else if (card.type === "jump" || card.type === "jumpcolor") { // skip a player
       // skip the next player
-      if (clockwise) nextPlayer = (+playerIndex + 2) % playerCount;
-      else {
-        if (playerCount == 2) nextPlayer = currentPlayer;// if there are only two players
-        else if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
-        else nextPlayer -= 2;
+      if (!battleMode) {
+        if (clockwise) nextPlayer = (+playerIndex + 2) % playerCount;
+        else {
+          if (playerCount == 2) nextPlayer = currentPlayer;// if there are only two players
+          else if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
+          else nextPlayer -= 2;
+        }
       }
     } else if (card.type === "flip") { // toggle light/dark mode
       gamestate.lightMode = !lightMode;
     } else if (card.type === "pick") { // enter battle mode
-      // gamestate.battleMode = true;
-      // gamestate.cardsToPick += card.value;
+      gamestate.battleMode = true;
+      gamestate.cardsToPick += card.value;
     } else if (card.type === "pickuntil") { // pick cards until you find a certain color.
       // gamestate.battleMode = true;
     }

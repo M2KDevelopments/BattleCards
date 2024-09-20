@@ -97,7 +97,7 @@ function BattleCards() {
 
 
 		// player timer
-		const onPlayerTimer = (time, currentPlayer, nextPlayer) => {
+		const onPlayerTimer = (time, currentPlayer, nextPlayer, cardsToPick) => {
 
 			// if the player time is up
 			if (time <= 0) {
@@ -116,11 +116,19 @@ function BattleCards() {
 				allCardsInHand.add(cardIndexOnTable);
 				for (const cardIndex of cardsOnTable) allCardsInHand.add(cardIndex);
 
-				// choose a card from list that is not in hand or on the table
-				const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+				// choose cards from list that is not in hand or on the table
+				const cardIndices = []
+				for (let i = 0; i < (cardsToPick || 1); i++) {
+					const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+					if (cardIndex != -1) {
+						allCardsInHand.add(cardIndex);
+						cardIndices.push(cardIndex);
+					}
+
+				}
 
 				// add card to player
-				players[currentPlayer].cards.add(cardIndex);
+				players[currentPlayer].cards.add(...cardIndices);
 				setPlayers([...players]);
 
 
@@ -133,13 +141,19 @@ function BattleCards() {
 				// remove color dialogue
 				setChooseColor(null);
 
+				// no more cards in battle mode
+				setCardsToPick(0);
+
+				// disable battle
+				setBattleMode(false)
+
 			} else setPlayerTime(time);// update time
 		}
 		socket.on('onplayertime', onPlayerTimer);
 
 
 		// when a card is picked
-		const onPickedCard = (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
+		const onPickedCard = (cardIndices, currentPlayerIndex, nextPlayerIndex, continueBattle) => {
 
 			// update player
 			for (const cardIndex of cardIndices) players[currentPlayerIndex].cards.add(cardIndex);
@@ -153,6 +167,15 @@ function BattleCards() {
 
 			// remove color dialogue
 			setChooseColor(null);
+
+			// Set Cards to Pick to 0
+			setCardsToPick(0);
+
+			// Disable Battle Mode
+			setBattleMode(false);
+
+			// Disable Battle Mode
+			if (!continueBattle) setBattleMode(false);
 
 		}
 		socket.on('onpickcard', onPickedCard)
@@ -270,7 +293,7 @@ function BattleCards() {
 	/**
 	 * Pick a card on the table.
 	 */
-	const onPick = () => {
+	const onPick = (continueBattle = false) => {
 
 		// game is over
 		if (gameOver) return;
@@ -291,23 +314,32 @@ function BattleCards() {
 		allCardsInHand.add(cardIndexOnTable);
 		for (const cardIndex of cardsOnTable) allCardsInHand.add(cardIndex);
 
-		// choose a card from list that is not in hand or on the table
-		const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+		// choose cards from list that is not in hand or on the table
+		const cardIndices = []
+		for (let i = 0; i < (cardsToPick || 1); i++) {
+			const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
+			if (cardIndex != -1) {
+				allCardsInHand.add(cardIndex);
+				cardIndices.push(cardIndex);
+			}
+
+		}
 
 		// send data to websockets
 		const data = {
 			roomId: gameoptions.roomId,
-			cardIndices: [cardIndex],
+			cardIndices: cardIndices,
 			playerIndex: currentPlayerIndex,
 			playerCount: players.length,
 			clockwise,
 			battleMode,
+			continueBattle,
 			lightMode,
-			cardsToPick
+			cardsToPick,
 		}
 
 
-		socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex) => {
+		socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex, continueBattle) => {
 
 			// update player
 			players[currentPlayerIndex].addCards(...cardIndices);
@@ -321,8 +353,14 @@ function BattleCards() {
 
 			// remove color dialogue
 			setChooseColor(null);
-		})
 
+			// Set Cards to Pick to 0
+			setCardsToPick(0);
+
+			// Disable Battle Mode
+			if (!continueBattle) setBattleMode(false);
+
+		})
 	}
 
 	/**
@@ -395,7 +433,7 @@ function BattleCards() {
 
 
 			// if the player is force to pick a card;
-			if (gamestate.pickcard) onPick();
+			if (gamestate.pickcard) onPick(true);
 		});
 
 	}
@@ -426,35 +464,40 @@ function BattleCards() {
 			const tableCard = lightMode ? currentCard : darkCards[currentCard.darkId];
 
 			// if the game is in battle mode
-			if (battleMode) return true;
+			if (battleMode) {
+				if (card.type === "number" && tableCard.type !== "iwant") return false;
 
- 
-			// logic to filter the cards
-			if (tableCard.type === "reversecolor") {
-				if (card.type === "number" && card.color != tableCard.color) return false;
-				else if (card.type == "jumpcolor" && card.value !== tableCard.value) return false;
+				// all other cards are allowed
+				return true;
 
-			} else if (tableCard.type === "jumpcolor") {
+			} else {
+				// logic to filter the cards
+				if (tableCard.type === "reversecolor") {
+					if (card.type === "number" && card.color != tableCard.color) return false;
+					else if (card.type == "jumpcolor" && card.value !== tableCard.value) return false;
 
-				if (card.type === "number" && card.color != tableCard.color) return false;
-				else if (card.type == "reversecolor" && card.value !== tableCard.value) return false;
+				} else if (tableCard.type === "jumpcolor") {
 
-			} else if (tableCard.type === "number") {
+					if (card.type === "number" && card.color != tableCard.color) return false;
+					else if (card.type == "reversecolor" && card.value !== tableCard.value) return false;
 
-				if (card.type === "number") {
-					if (card.value != tableCard.value && card.color != tableCard.color) return false;
+				} else if (tableCard.type === "number") {
+
+					if (card.type === "number") {
+						if (card.value != tableCard.value && card.color != tableCard.color) return false;
+					}
+					else if (card.type == "reversecolor" && card.value !== tableCard.color) return false;
+					else if (card.type == "jumpcolor" && card.value !== tableCard.color) return false;
+
+				} else if (tableCard.type === "iwant" && colorDemand) {
+					if (card.type === "number" && card.color !== colorDemand) return false;
+					else if (card.type == "reversecolor" && card.color !== colorDemand) return false;
+					else if (card.type == "jumpcolor" && card.color !== colorDemand) return false;
 				}
-				else if (card.type == "reversecolor" && card.value !== tableCard.color) return false;
-				else if (card.type == "jumpcolor" && card.value !== tableCard.color) return false;
-
-			} else if (tableCard.type === "iwant" && colorDemand) {
-				if (card.type === "number" && card.color !== colorDemand) return false;
-				else if (card.type == "reversecolor" && card.color !== colorDemand) return false;
-				else if (card.type == "jumpcolor" && card.color !== colorDemand) return false;
 			}
 
 			return true;
-		}, [currentCard, colorDemand, battleMode, lightMode, darkCards])
+		}, [currentCard, colorDemand, battleMode, lightMode, darkCards, lightCards])
 
 
 
@@ -499,7 +542,7 @@ function BattleCards() {
 
 			{/* Players' Info */}
 			<section className="fixed top-0 left-0 w-screen">
-				<div>{clockwise ? ">>" : "<<"} Direction --- {colorDemand ? colorDemand : null}</div>
+				<div>{clockwise ? ">>" : "<<"} Direction --- {colorDemand ? colorDemand : null} Cards to Pick {cardsToPick} Battle Mode: {battleMode}</div>
 				<div className="flex gap-2 p-3">
 					{players
 						.map((player, index) => {
@@ -538,10 +581,12 @@ function BattleCards() {
 				</PlayingCard>
 
 				{/* Cards to pick from */}
-				<div onClick={onPick} title="Pick Card" className="text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
+				<div onClick={() => onPick()} title="Pick Card" className="text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
 					🃏
 				</div>
 			</div>
+
+
 
 
 			{/* Cards in Hand */}
@@ -559,6 +604,8 @@ function BattleCards() {
 				</div>
 			</div>
 
+
+
 			{/* Bottom buttons options */}
 			<div className="w-screen max-h-[5vh] h-[5vh]">
 				<div className="flex gap-4 justify-center items-center">
@@ -568,6 +615,8 @@ function BattleCards() {
 					<button onClick={onLeave} title="Leave" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📴 Leave</button>
 				</div>
 			</div>
+
+
 
 			{/* Choose Color Dialogue */}
 			{chooseColor != null && <dialog open={chooseColor} style={{ background: "none" }} onClose={() => setChooseColor(null)}>
