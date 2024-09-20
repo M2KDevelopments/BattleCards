@@ -26,6 +26,7 @@ function BattleCards() {
 	const [gameOver, setGameOver] = useState(false);
 	const [countdown, setCountdown] = useState(0);
 	const [cardsToPick, setCardsToPick] = useState(0);
+	const [pickUntil, setPickUntil] = useState([]);
 	const [chooseColor, setChooseColor] = useState(false);
 
 	// time

@@ -164,6 +164,13 @@ exports.onConnection = (socket) => {
 
       gamestate.clockwise = !clockwise;
       if (!battleMode) nextPlayer = currentPlayer;
+      else {
+        nextPlayer = (+playerIndex + 1) % playerCount;
+        if (!gamestate.clockwise) {
+          if (playerIndex - 1 < 0) nextPlayer = playerCount - 1;
+          else nextPlayer = playerIndex - 1;
+        }
+      }
 
     } else if (card.type === "reverse") { // reverse the direction of players turn
       gamestate.clockwise = !clockwise;
@@ -184,6 +191,16 @@ exports.onConnection = (socket) => {
       gamestate.cardsToPick += card.value;
     } else if (card.type === "pickuntil") { // pick cards until you find a certain color.
       // gamestate.battleMode = true;
+    } else if (card.type === "number") { // a number card is played
+      if (battleMode) { // if in battle
+        // skip to that player
+        if (clockwise) nextPlayer = (+playerIndex + card.value) % playerCount;
+        else {
+          if (playerCount == 2 && card.value % 2 == 0) nextPlayer = currentPlayer;// if there are only two players
+          else if (playerIndex - card.value < 0) nextPlayer = playerCount - (playerIndex - card.value);
+          else nextPlayer -= card.value;
+        }
+      }
     }
 
     if (noCards) {
