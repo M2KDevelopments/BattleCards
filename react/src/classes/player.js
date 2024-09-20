@@ -42,8 +42,9 @@ export default class Player {
             });
         } else {
             return Array.from(this.cards.values()).map(id => {
+                const l = lightCards[id]
                 const d = darkCards[lightCards[id].darkId];
-                return new Card(d.index, d.type, d.value, d.color, d.battleValue)
+                return new Card(l.index, d.type, d.value, d.color, d.battleValue)
             });
         }
     }

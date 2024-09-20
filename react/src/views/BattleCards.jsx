@@ -58,9 +58,9 @@ function BattleCards() {
 	}, [gameoptions]);
 
 
-
 	// listen for websocket
 	useEffect(() => {
+
 
 		// decrements playerTimer
 		const t = setInterval(() => {
@@ -78,6 +78,7 @@ function BattleCards() {
 				cardsToPick
 			});
 		}, 1000);
+
 
 		// game timer
 		const onTimer = (time, gameover) => {
@@ -361,7 +362,7 @@ function BattleCards() {
 			battleMode,
 			lightMode,
 			cardsToPick,
-			colorDemand: chooseColor != null ? chooseColor.color : colorDemand
+			colorDemand: chooseColor != null ? chooseColor.color : ""
 		}
 
 
@@ -413,41 +414,47 @@ function BattleCards() {
 
 
 
-	const playableFilter = useCallback((playcard) => {
+	const playableFilter = useCallback(
+		/**
+			 * Play the choosen card in hand. It could be light/dark
+			 * @param {Card} playcard 
+		*/
+		(playcard) => {
 
-		// get card in hand and playable
-		const card = lightMode ? playcard : darkCards[playcard.darkId];
-		const tableCard = lightMode ? currentCard : darkCards[currentCard.darkId];
+			// get card in hand and playable
+			const card = lightMode ? playcard : darkCards[lightCards[playcard.index].darkId];
+			const tableCard = lightMode ? currentCard : darkCards[currentCard.darkId];
 
-		// if the game is in battle mode
-		if (battleMode) return true;
+			// if the game is in battle mode
+			if (battleMode) return true;
 
-		// logic to filter the cards
-		if (tableCard.type === "reversecolor") {
-			if (card.type === "number" && card.color != tableCard.color) return false;
-			else if (card.type == "jumpcolor" && card.value !== tableCard.value) return false;
+ 
+			// logic to filter the cards
+			if (tableCard.type === "reversecolor") {
+				if (card.type === "number" && card.color != tableCard.color) return false;
+				else if (card.type == "jumpcolor" && card.value !== tableCard.value) return false;
 
-		} else if (tableCard.type === "jumpcolor") {
+			} else if (tableCard.type === "jumpcolor") {
 
-			if (card.type === "number" && card.color != tableCard.color) return false;
-			else if (card.type == "reversecolor" && card.value !== tableCard.value) return false;
+				if (card.type === "number" && card.color != tableCard.color) return false;
+				else if (card.type == "reversecolor" && card.value !== tableCard.value) return false;
 
-		} else if (tableCard.type === "number") {
+			} else if (tableCard.type === "number") {
 
-			if (card.type === "number") {
-				if (card.value != tableCard.value && card.color != tableCard.color) return false;
+				if (card.type === "number") {
+					if (card.value != tableCard.value && card.color != tableCard.color) return false;
+				}
+				else if (card.type == "reversecolor" && card.value !== tableCard.color) return false;
+				else if (card.type == "jumpcolor" && card.value !== tableCard.color) return false;
+
+			} else if (tableCard.type === "iwant" && colorDemand) {
+				if (card.type === "number" && card.color !== colorDemand) return false;
+				else if (card.type == "reversecolor" && card.color !== colorDemand) return false;
+				else if (card.type == "jumpcolor" && card.color !== colorDemand) return false;
 			}
-			else if (card.type == "reversecolor" && card.value !== tableCard.color) return false;
-			else if (card.type == "jumpcolor" && card.value !== tableCard.color) return false;
 
-		} else if (tableCard.type === "iwant" && colorDemand) {
-			if (card.type === "number" && card.value !== colorDemand) return false;
-			else if (card.type == "reversecolor" && card.value !== colorDemand) return false;
-			else if (card.type == "jumpcolor" && card.value !== colorDemand) return false;
-		}
-
-		return true;
-	}, [currentCard, colorDemand, battleMode, lightMode, darkCards])
+			return true;
+		}, [currentCard, colorDemand, battleMode, lightMode, darkCards])
 
 
 
@@ -525,9 +532,9 @@ function BattleCards() {
 				{/* Cards thrown */}
 				<PlayingCard
 					sx={{ fontSize: 60, height: "33%", minWidth: 170 }}
-					isDark={currentCard.isDark()}
-					color={currentCard.color}>
-					{currentCard.getText()}
+					isDark={!lightMode}
+					color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
+					{lightMode ? currentCard.getText() : currentCard.getText(darkCards)}
 				</PlayingCard>
 
 				{/* Cards to pick from */}
@@ -544,7 +551,7 @@ function BattleCards() {
 						<PlayingCard
 							onPlay={() => onPlayCard(card)}
 							key={card.index}
-							isDark={card.isDark()}
+							isDark={!lightMode}
 							color={card.color}>
 							{card.getText()}
 						</PlayingCard>

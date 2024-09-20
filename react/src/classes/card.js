@@ -29,7 +29,35 @@ export class Card {
         return this.darkId == -1;
     }
 
-    getText() {
+    /**
+     * Get text for the card
+     * @param {Array<Card>} darkCards if you want to show the card dark text
+     * Get card battle value
+    */
+    getText(darkCards) {
+        if (this.index == undefined) return "";
+        if (darkCards) {
+            const card = darkCards[this.darkId];
+            switch (card.type) {
+                case "jumpcolor":
+                case "jump":
+                    return "🚫";
+                case "reversecolor":
+                case "reverse":
+                    return "🔙";
+                case "iwant":
+                    return "💞";
+                case "pickuntil":
+                    return "🫳🏽";
+                case "pick":
+                    return `🔥+${card.value}`;
+                case "flip":
+                    return `💫`;
+                case "number":
+                    return card.value;
+                default: return card.value;
+            }
+        }
         switch (this.type) {
             case "jumpcolor":
             case "jump":
@@ -55,6 +83,8 @@ export class Card {
         }
 
     }
+
+
 
     /**
   * Get card battle value
