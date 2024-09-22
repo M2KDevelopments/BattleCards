@@ -1,6 +1,6 @@
 import { useContext } from "react"
 import { ContextData } from "../App"
-import { PAGE_GAMEOPTIONS, PAGE_SETTINGS, PAGE_TUTORIAL } from "../App";
+import { PAGE_GAMEOPTIONS, PAGE_TUTORIAL } from "../App";
 
 
 function MainMenu() {
@@ -13,7 +13,6 @@ function MainMenu() {
       <h1 className="text-center text-2xl">Battle Cards</h1>
       <button className="text-purple-700 hover:text-pink-700 duration-200" onClick={() => setPage(PAGE_TUTORIAL)}>How to Play</button>
       <button className="text-purple-700 hover:text-pink-700 duration-200" onClick={() => setPage(PAGE_GAMEOPTIONS)}>Start Battle Cards</button>
-      <button className="text-purple-700 hover:text-pink-700 duration-200" onClick={() => setPage(PAGE_SETTINGS)}>Settings</button>
     </div>
   )
 

@@ -76,7 +76,8 @@ function BattleCards() {
 				clockwise,
 				battleMode,
 				lightMode,
-				cardsToPick
+				cardsToPick,
+				pickUntil
 			});
 		}, 1000);
 
@@ -98,7 +99,7 @@ function BattleCards() {
 
 
 		// player timer
-		const onPlayerTimer = (time, currentPlayer, nextPlayer, cardsToPick) => {
+		const onPlayerTimer = (time, currentPlayer, nextPlayer, cardsToPick, pickUntilCards) => {
 
 			// if the player time is up
 			if (time <= 0) {
@@ -128,6 +129,22 @@ function BattleCards() {
 
 				}
 
+
+				// add pick until color cards.
+				for (const color of pickUntilCards) {
+					for (const i in lightCards) {
+						const lCard = lightCards[i]
+						const dCard = darkCards[lCard.darkId];
+
+						if (allCardsInHand.has(i)) continue;
+
+						allCardsInHand.add(i);
+						cardIndices.push(i);
+
+						if (dCard.color == color) break;
+					}
+				}
+
 				// add card to player
 				players[currentPlayer].cards.add(...cardIndices);
 				setPlayers([...players]);
@@ -141,6 +158,9 @@ function BattleCards() {
 
 				// remove color dialogue
 				setChooseColor(null);
+
+				// pick until color cards 
+				setPickUntil([]);
 
 				// no more cards in battle mode
 				setCardsToPick(0);
@@ -271,7 +291,10 @@ function BattleCards() {
 			socket.off('ongameover', onGameOver);
 			clearInterval(t)
 		}
-	}, [cardIndexOnTable, lightCards, players, cardsOnTable, playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise, battleMode, lightMode, cardsToPick])
+	}, [cardIndexOnTable, lightCards, darkCards, players, cardsOnTable,
+		playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise,
+		battleMode, lightMode, cardsToPick, pickUntil
+	]);
 
 
 	const onScoreCheck = () => {
@@ -326,6 +349,21 @@ function BattleCards() {
 
 		}
 
+		// add pick until color cards.
+		for (const color of pickUntil) {
+			for (const i in lightCards) {
+				const lCard = lightCards[i]
+				const dCard = darkCards[lCard.darkId];
+
+				if (allCardsInHand.has(i)) continue;
+
+				allCardsInHand.add(i);
+				cardIndices.push(i);
+
+				if (dCard.color == color) break;
+			}
+		}
+
 		// send data to websockets
 		const data = {
 			roomId: gameoptions.roomId,
@@ -335,6 +373,7 @@ function BattleCards() {
 			clockwise,
 			battleMode,
 			continueBattle,
+			pickUntil,
 			lightMode,
 			cardsToPick,
 		}
@@ -355,6 +394,8 @@ function BattleCards() {
 			// remove color dialogue
 			setChooseColor(null);
 
+			setPickUntil([]);
+
 			// Set Cards to Pick to 0
 			setCardsToPick(0);
 
@@ -369,7 +410,7 @@ function BattleCards() {
 	 * @param {Card} card 
 	 * @param {boolean} playColorCard if the card type is a iwant/pickuntil it will stop the card being played and open a color dialogue firest
 	 */
-	const onPlayCard = (card, playColorCard = false) => {
+	const onPlayCard = (card, playColorCard = null) => {
 
 		const cardCount = players[currentPlayerIndex].cards.size;
 
@@ -388,6 +429,12 @@ function BattleCards() {
 			return setChooseColor({ card, color: COLOURS[index] });
 		}
 
+		//pick until
+		if (playColorCard && card.type === "pickuntil") {
+			pickUntil.push(playColorCard)
+			setChooseColor(null)
+		}
+
 		// play the card
 		const data = {
 			roomId: gameoptions.roomId,
@@ -401,7 +448,8 @@ function BattleCards() {
 			battleMode,
 			lightMode,
 			cardsToPick,
-			colorDemand: chooseColor != null ? chooseColor.color : ""
+			pickUntil,
+			colorDemand: playColorCard && card.type != "pickuntil" ? playColorCard : ""
 		}
 
 
@@ -415,6 +463,7 @@ function BattleCards() {
 			setBattleMode(gamestate.battleMode);
 			setCardsToPick(gamestate.cardsToPick);
 			setColorDemand(gamestate.colorDemand);
+			setPickUntil(gamestate?.pickUntil || []);
 
 			players[playerIndex].cards.delete(cardIndex);
 			setPlayers([...players])
@@ -631,7 +680,7 @@ function BattleCards() {
 								className="rounded-full p-8 shadow-md hover:shadow-2xl duration-200"
 								onClick={() => {
 									setChooseColor({ ...chooseColor, color });
-									onPlayCard(chooseColor.card, true);
+									onPlayCard(chooseColor.card, color);
 								}}>
 							</button>
 						)}

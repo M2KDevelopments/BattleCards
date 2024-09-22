@@ -2,7 +2,6 @@ import { createContext, useEffect, useState } from "react"
 import MainMenu from "./views/MainMenu";
 import BattleCards from "./views/BattleCards";
 import GameOptions from "./views/GameOptions";
-import Settings from "./views/Settings";
 import Tutorial from "./views/Tutorial";
 import GameLobby from "./views/GameLobby";
 import io from 'socket.io-client';
@@ -10,6 +9,7 @@ import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
 
 export const BACKENDURL = 'http://localhost:4000'
+// eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
 
 
@@ -94,7 +94,6 @@ function App() {
 
         {/* Show the correct page */}
         {page === PAGE_MENU && <MainMenu />}
-        {page === PAGE_SETTINGS && <Settings />}
         {page === PAGE_TUTORIAL && <Tutorial />}
         {page === PAGE_GAMEOPTIONS && <GameOptions />}
         {page === PAGE_GAMELOBBY && <GameLobby />}

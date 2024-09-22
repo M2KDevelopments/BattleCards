@@ -111,11 +111,11 @@ exports.onConnection = (socket) => {
 
   // get the time of the current player
   socket.on('playertime', (data) => {
-    const { roomId, playerTimer, playerIndex, playerCount, clockwise, battleMode, lightMode, cardsToPick } = data;
+    const { roomId, playerTimer, playerIndex, playerCount, cardsToPick, pickUntil } = data;
     const currentPlayer = playerIndex;
     const nextPlayer = (+playerIndex + 1) % playerCount;
-    socket.to(roomId).emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer);
-    socket.emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer, cardsToPick);
+    socket.to(roomId).emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer, cardsToPick, pickUntil);
+    socket.emit("onplayertime", playerTimer - 1, currentPlayer, nextPlayer, cardsToPick, pickUntil);
   })
 
 
@@ -129,7 +129,7 @@ exports.onConnection = (socket) => {
   socket.on('pickcard', (data, callback) => {
     // send the cards to everyone that the current player picked
     // - cardIndices is an array of card index
-    const { roomId, cardIndices, playerIndex, playerCount, clockwise, continueBattle } = data;
+    const { roomId, cardIndices, playerIndex, playerCount, clockwise, continueBattle, pickUntil } = data;
     const currentPlayer = playerIndex;
 
     // default next player
@@ -190,7 +190,7 @@ exports.onConnection = (socket) => {
       gamestate.battleMode = true;
       gamestate.cardsToPick += card.value;
     } else if (card.type === "pickuntil") { // pick cards until you find a certain color.
-      // gamestate.battleMode = true;
+      gamestate.battleMode = true;
     } else if (card.type === "number") { // a number card is played
       if (battleMode) { // if in battle
         // skip to that player
