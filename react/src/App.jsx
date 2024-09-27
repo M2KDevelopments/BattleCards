@@ -73,6 +73,8 @@ function App() {
     }
   });
 
+  
+
   // check if the url as a socket room id
   useEffect(() => {
     const url = window.location.href;

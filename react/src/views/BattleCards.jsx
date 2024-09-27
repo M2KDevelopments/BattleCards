@@ -129,6 +129,7 @@ function BattleCards() {
 
 				}
 
+				
 
 				// add pick until color cards.
 				for (const color of pickUntilCards) {

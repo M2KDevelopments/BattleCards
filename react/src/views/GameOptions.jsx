@@ -1,19 +1,22 @@
 
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState  } from 'react';
 import AREAS from '../jsons/areas.json';
-import axios from 'axios';
-import { ContextData, PAGE_GAMELOBBY, socket, BACKENDURL } from '../App';
-const instance = axios.create()
+import CHARACTERS from '../jsons/characters.json';
+import { ContextData, PAGE_GAMELOBBY, socket } from '../App';
+import DarkOverlay from '../components/DarkOverlay';
+// import axios from 'axios';
+// const instance = axios.create()
+const numberOfDecks = 8;
+
 
 export default function GameOptions() {
 
   const [playername, setPlayername] = useState("New Player");
-  const [numberOfDecks, setNumberOfDecks] = useState(3);
   const [area, setArea] = useState(AREAS[0]);
 
   // npcs players settings
-  const [allNpcs, setAllNpcs] = useState([])
-  const [npcPlayers, setNpcPlayers] = useState([]);
+  // const [allNpcs, setAllNpcs] = useState([])
+  // const [npcPlayers, setNpcPlayers] = useState([]);
 
   // page and gameoptions
   const { setPage, gameoptions, setGameOptions } = useContext(ContextData);
@@ -23,42 +26,42 @@ export default function GameOptions() {
 
 
   // Get Npcs from backend
-  useEffect(() => {
-    (async () => {
-      const response = await instance.get(`${BACKENDURL}/api/npcs`);
-      const npcs = response.data;
-      setAllNpcs(npcs);
-    })()
-  }, [])
+  // useEffect(() => {
+  //   (async () => {
+  //     const response = await instance.get(`${BACKENDURL}/api/npcs`);
+  //     const npcs = response.data;
+  //     setAllNpcs(npcs);
+  //   })()
+  // }, [])
 
 
-  const onAddCharacters = (e) => {
-    //prevent form from submitting
-    e.preventDefault();
+  // const onAddCharacters = (e) => {
+  //   //prevent form from submitting
+  //   e.preventDefault();
 
-    // get the player from form data
-    const npcIndex = e.target.npc.value;
+  //   // get the player from form data
+  //   const npcIndex = e.target.npc.value;
 
-    // if player was not choosen
-    if (npcIndex === "-1") return alert("Please select a player");
+  //   // if player was not choosen
+  //   if (npcIndex === "-1") return alert("Please select a player");
 
-    // check if the name already exists
-    if (npcPlayers.includes(allNpcs[npcIndex])) return alert(`${allNpcs[npcIndex].name} already exists`);
+  //   // check if the name already exists
+  //   if (npcPlayers.includes(allNpcs[npcIndex])) return alert(`${allNpcs[npcIndex].name} already exists`);
 
-    // if everything is good add player to list
-    npcPlayers.push(allNpcs[npcIndex]);
-    setNpcPlayers([...npcPlayers]);
+  //   // if everything is good add player to list
+  //   npcPlayers.push(allNpcs[npcIndex]);
+  //   setNpcPlayers([...npcPlayers]);
 
-  }
+  // }
 
 
   /**
    * Remove the player from the list
    * @param {String} name 
    */
-  const onRemovePlayers = (npc) => {
-    setNpcPlayers(npcPlayers.filter(n => n.id !== npc.id));
-  }
+  // const onRemovePlayers = (npc) => {
+  //   setNpcPlayers(npcPlayers.filter(n => n.id !== npc.id));
+  // }
 
 
   const onPlay = () => {
@@ -67,7 +70,7 @@ export default function GameOptions() {
     const gamesettings = {
       playername: playername,
       area: area,
-      npcs: npcPlayers,
+      npcs: [],//npcPlayers,
       decks: numberOfDecks,
       roomId: "room" + socket.id,
       host: true,
@@ -93,19 +96,19 @@ export default function GameOptions() {
 
 
   return (
-    <div>
-      <img src="logo.svg" width={100} alt="Battle Cards" />
-      <h1>Battle Cards</h1>
+    <>
+      <DarkOverlay color="#00000077" />
+      <div className='z-20'>
+
+        <section className='flex gap-4 justify-center m-8'>
+          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={() => setGameTime(((gameTime + 100) % 1000) || 1000)}>Game Time: <span>{gameTime}</span>s</button>
+          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={() => setScore(((score + 100) % 5000) || 5000)}>Start Points: <span>{score}</span></button>
+          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-purple-600 hover:bg-purple-900 duration-150 text-white' onClick={onPlay}>Create Game</button>
+        </section>
 
 
-      <h6>Player Name</h6>
-      <input type='name' placeholder='Player Name' value={playername} onChange={e => setPlayername(e.target.value)} />
-
-      <input type='number' min={60} max={10000} placeholder='Game Time' value={gameTime} onChange={e => setGameTime(e.target.value)} />
-      <input type='number' min={200} max={10000} placeholder='Starting Score' value={score} onChange={e => setScore(e.target.value)} />
-
-      {/* Showing NPCs chosen */}
-      {npcPlayers.map(npc =>
+        {/* Showing NPCs chosen */}
+        {/* {npcPlayers.map(npc =>
         <div
           onClick={() => onRemovePlayers(npc)}
           key={npc.id}>{npc.name}
@@ -113,36 +116,37 @@ export default function GameOptions() {
       )}
 
       {/* Adding Characters */}
-      <form onSubmit={onAddCharacters}>
+        {/* <form onSubmit={onAddCharacters}>
         <select name="npc" defaultValue="-1">
           <option value="-1">Select Character</option>
           {allNpcs.map((npc, index) => <option key={npc.id} value={index}>{npc.name}</option>)}
         </select>
         <button type='submit'>Add Player</button>
-      </form>
+      </form>   */}
 
 
-      {/* Selecting Number of Decks */}
-      <h6>Number of Decks: {numberOfDecks}</h6>
-      <input
-        type='range'
-        value={numberOfDecks}
-        onChange={e => setNumberOfDecks(parseInt(e.target.value))}
-        max={10}
-        min={1}
-      />
+        <section className='px-10 flex flex-col gap-3 justify-center mx-auto h-screen my-auto content-center items-center align-middle'>
+          <p className='z-20 text-6xl text-white w-full text-left font-black'>{playername}</p>
+          <div className='grid grid-cols-10 w-full'>
+            {
+              CHARACTERS.map(name =>
+                <div title={name} key={name} onClick={() => setPlayername(name)} className='m-4 z-20 border-2 border-white w-32 h-32  bg-none hover:bg-[#000000a4] duration-300'>
 
+                </div>
+              )
+            }
+          </div>
 
-      {/* Select Area */}
-      <h6>Select Location of Play</h6>
-      <select value={area} onChange={e => setArea(e.target.value)}>
-        {AREAS.map(name => <option key={name} value={name}>{name}</option>)}
-      </select>
+        </section>
 
-
-      <button onClick={onPlay}>Create Game</button>
-    </div>
-
-
+        <section className='fixed bottom-3 flex gap-4 justify-center w-screen p-4'>
+          {AREAS.map(name =>
+            <div title={name} className='z-20 border-2 border-white w-24 h-24 rounded-xl bg-none hover:bg-[#000000a4] duration-300' onClick={() => setArea(name)} key={name}>
+              <span>{name}</span>
+            </div>
+          )}
+        </section>
+      </div>
+    </>
   )
 }
