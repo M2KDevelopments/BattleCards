@@ -16,6 +16,6 @@ const io = new Server(httpServer, {
 io.on("connection", mywebsockets.onConnection);
 
 //Dev Port can be found in ../nodemon.json
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3002;
 
 httpServer.listen(port, () => console.log(`Running on ${port}`));
