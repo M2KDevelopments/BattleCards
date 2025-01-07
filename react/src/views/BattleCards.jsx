@@ -52,6 +52,16 @@ function BattleCards() {
 	}, [lightCards, cardIndexOnTable]);
 
 
+
+	useEffect(() => {
+        document.body.style.backgroundColor = '#e9e9e9';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        document.body.style.backgroundSize = '100%';
+        document.body.style.background
+        document.body.style.overflow = 'hidden';
+    }, [])
+
+
 	// initialize game timer
 	useEffect(() => {
 		// tell backend to start a set interval timer

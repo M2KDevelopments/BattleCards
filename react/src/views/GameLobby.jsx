@@ -169,13 +169,15 @@ function GameLobby() {
 
 
     return (
-        <div>
+        <div className="text-gray-500">
             <img src="logo.svg" width={100} alt="Battle Cards" />
             <h1>Battle Cards Lobby</h1>
 
             {/* Show if the admin/host  */}
             {gameoptions.host ? <div>
-                <button onClick={onCopyGameLink}>Copy Join Link</button>
+                <button className="bg-purple-700 p-4 rounded-2xl text-white" onClick={onCopyGameLink}>Copy Join Link</button>
+
+                <input className="w-full p-4 rounded-md" disabled={true} value={`${window.location.href}#join${gameoptions.roomId}`} />
 
                 <h4 title={state.players.map(p => p.name).join("\n")}>
                     {gameoptions.npcs.length + 1 + state.players.length} Player(s) In Chats
@@ -194,25 +196,28 @@ function GameLobby() {
             </div> : <button onClick={onCopyGameLink}>Copy Invite Link</button>}
 
             {/* Show the chat message */}
-            <div style={{ height: 400, maxHeight: 400, overflowY: 'scroll', background: "lightgrey" }}>
+            <div style={{ height: 300, maxHeight: 300, overflowY: 'scroll', background: "lightgrey" }}>
                 {state.chats.map((chat, index) => <h6 key={index}>{chat.name}: {chat.message}</h6>)}
             </div>
 
             {/* Submit a message to the lobby */}
-            <form onSubmit={onSendMessageToChat}>
+            <form onSubmit={onSendMessageToChat} className="w-full flex flex-col gap-2 mx-8">
                 <input type="text" required name="chat" maxLength={300} placeholder="Message Chat" />
-                <button type="submit">Send</button>
+                <button className="bg-pink-700 p-2 rounded-2xl text-white" type="submit">Message Send</button>
             </form>
 
-            <button onClick={onReady}>{ready ? "Not Ready" : "Ready!"}</button>
+            <div className="flex gap-3 justify-center p-2">
+                <button className="bg-purple-700 p-4 rounded-2xl cursor-pointer text-white" onClick={onReady}>{ready ? "Not Ready" : "Ready!"}</button>
 
-            {/* Only host can start the game. */}
-            {gameoptions.host ?
-                <button
-                    // check if all the players are ready include you
-                    disabled={state.players.filter(p => !p.ready).length || !ready}
-                    onClick={onStart}>Start Game</button>
-                : null}
+                {/* Only host can start the game. */}
+                {gameoptions.host ?
+                    <button
+                        className="bg-purple-700 p-4 rounded-2xl cursor-pointer text-white"
+                        // check if all the players are ready include you
+                        disabled={state.players.filter(p => !p.ready).length || !ready}
+                        onClick={onStart}>Start Game</button>
+                    : null}
+            </div>
         </div>
     )
 }
