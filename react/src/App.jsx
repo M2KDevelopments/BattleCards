@@ -8,10 +8,9 @@ import io from 'socket.io-client';
 import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
 
-export const BACKENDURL = 'http://localhost:4000'
+export const BACKENDURL = 'https://bc.m2kdevelopments.com'
 // eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
-
 
 
 // all the possible pages of the game
