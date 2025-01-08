@@ -4,6 +4,8 @@ import Loading from "../components/Loading";
 import Player from "../classes/player";
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
+import { toast } from 'react-toastify';
+
 
 function GameLobby() {
 
@@ -69,8 +71,6 @@ function GameLobby() {
         return map;
     }, [state.gameoptions.players])
 
-    console.log(state.gameoptions.players)
-
 
     useEffect(() => {
         if (gameoptions.host) socket.emit('gameoptions', {
@@ -102,10 +102,7 @@ function GameLobby() {
         socket.on('ondisconnected', onDisconnected)
 
         // update game options from everyone
-        const onGameOptions = (options) => {
-            console.log(options);
-            dispatch({ gameoptions: options })
-        }
+        const onGameOptions = (options) => dispatch({ gameoptions: options });
         socket.on('ongameoptions', onGameOptions)
 
 
@@ -176,7 +173,8 @@ function GameLobby() {
         await window.navigator.clipboard.writeText(link);
 
         // alert new that link was copied
-        alert(link);
+        // alert(link);
+        toast('Join link has been copied to clipboard')
     }
 
 
@@ -218,7 +216,7 @@ function GameLobby() {
             <DarkOverlay color="#00000077" />
             <div className="text-white h-screen" style={{ backgroundImage: `url(areas/${gameoptions.area || state.gameoptions.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative">Battle Cards Lobby <i>({state.gameoptions?.players?.length || state.players.length})</i></h1>
-                <h6>You: {gameoptions.playername}</h6>
+                <h6 className="px-3">You: {gameoptions.playername}</h6>
 
                 {/* Game Options */}
                 <div className="grid phone:grid-cols-1 phone-xl:grid-cols-3 gap-3 py-2 px-8">

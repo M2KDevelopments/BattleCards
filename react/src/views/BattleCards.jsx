@@ -6,6 +6,9 @@ import PlayingCard from '../components/PlayingCard';
 import Player from "../classes/player";
 import Loading from "../components/Loading";
 import COLOURS from "../jsons/colors.json";
+import { toast } from 'react-toastify';
+import DarkOverlay from "../components/DarkOverlay";
+import CHARACTERS from '../jsons/characters.json';
 
 
 // the number seconds a player has to make a play.
@@ -52,14 +55,23 @@ function BattleCards() {
 	}, [lightCards, cardIndexOnTable]);
 
 
+	const playerIcons = useMemo(() => {
+		const map = new Map();
+		for (const person of players) {
+			const c = CHARACTERS.find(c => c.name === person.name);
+			map.set(person.name, { ...person, id: c.id, image: `avatars/${c.id}.jpeg` })
+		}
+		return map;
+	}, [players])
+
 
 	useEffect(() => {
-        document.body.style.backgroundColor = '#e9e9e9';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundSize = '100%';
-        document.body.style.background
-        document.body.style.overflow = 'hidden';
-    }, [])
+		document.body.style.backgroundColor = '#e9e9e9';
+		document.body.style.backgroundRepeat = 'no-repeat';
+		document.body.style.backgroundSize = '100%';
+		document.body.style.background
+		document.body.style.overflow = 'hidden';
+	}, [])
 
 
 	// initialize game timer
@@ -139,7 +151,7 @@ function BattleCards() {
 
 				}
 
-				
+
 
 				// add pick until color cards.
 				for (const color of pickUntilCards) {
@@ -432,7 +444,7 @@ function BattleCards() {
 		if (meIndex != currentPlayerIndex) return;
 
 		// if card is playable
-		if (!playableFilter(card)) return alert("Cannot play this card");
+		if (!playableFilter(card)) return toast.warning("Cannot play this card");
 
 		// if the card needs a color
 		if (!playColorCard && (card.type === "iwant" || card.type === "pickuntil")) {
@@ -566,7 +578,7 @@ function BattleCards() {
 	if (gameOver) {
 		return (
 			<div className="w-screen h-screen flex flex-col">
-				{countdown ? <Loading countDown={countdown} /> :
+				{countdown ? <Loading area={gameoptions.game.area} countDown={countdown} /> :
 
 					// Game Over Screen
 					<div>
@@ -599,107 +611,123 @@ function BattleCards() {
 
 
 	return (
-		<div style={{ background: lightMode ? undefined : "darkgray" }} className="w-screen h-screen flex flex-col">
+		<div>
+			<DarkOverlay color="#00000077" />
+			<div style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }} className="w-screen h-screen flex flex-col">
 
-			{/* Players' Info */}
-			<section className="fixed top-0 left-0 w-screen">
-				<div>{clockwise ? ">>" : "<<"} Direction --- {colorDemand ? colorDemand : null} Cards to Pick {cardsToPick} Battle Mode: {battleMode}</div>
-				<div className="flex gap-2 p-3">
-					{players
-						.map((player, index) => {
-							if (index == currentPlayerIndex) return { ...player, playing: true, me: meIndex == index }
-							else return { ...player, me: meIndex == index }
-						})
-						.map((player) =>
-							<div
-								className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
-								style={{ border: player.playing ? "2px solid gold" : player.me ? "2px solid cyan" : undefined }}
-								title={player.name + " (" + player.score + "pts)"}
-								key={player.id}>
-								{player.name}
-							</div>
+				{/* Game Info */}
+				<div className="flex items-center justify-end gap-4">
+					{currentPlayerIndex == meIndex ?
+						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-amber-400 text-white">Your Turn: <b>{playerTime}s</b></div>
+						:
+						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Wait Time: {playerTime}s</div>}
+					<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Game Time: <b>{gameTime}s</b></div>
+				</div>
+
+
+				{/* Players' Info */}
+				<section className="fixed top-0 left-0 w-screen z-10 text-white">
+					<div className="flex gap-2 p-3">
+						<span className="text-4xl">{clockwise ? "👉" : "👈"}</span>
+						{players
+							.map((player, index) => {
+								const image = playerIcons.get(player.name).image;
+								if (index == currentPlayerIndex) return { ...player, playing: true, me: meIndex == index, image }
+								else return { ...player, me: meIndex == index, image }
+							})
+							.map((player) =>
+								<div className="flex flex-col gap-2" key={player.id}>
+									<div
+										className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
+										style={{ border: player.playing ? "2px solid gold" : player.me ? "2px solid cyan" : undefined, backgroundImage: `url(${player.image})`, backgroundSize: '100%', overflow: 'hidden' }}
+										title={player.name + " (" + player.score + "pts)"}
+									>
+									</div>
+									<span style={{ background: player.playing ? "#ca8a04" : "#334155" }} className="text-[12px] text-white py-1 px-2 rounded-lg">{player.name}: ({player.score + "pts"})</span>
+
+								</div>
+							)}
+					</div>
+
+				</section>
+
+
+
+
+				{/* Cards on the table */}
+				<div className="h-[80vh] flex gap-4 justify-center items-center align-middle">
+
+					{/* Cards thrown */}
+					<PlayingCard
+						sx={{ fontSize: 60, height: "33%", minWidth: 170 }}
+						isDark={!lightMode}
+						colorDemand={colorDemand}
+						color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
+						<span className="font-extrabold">{lightMode ? currentCard.getText() : currentCard.getText(darkCards)}</span>
+					</PlayingCard>
+
+					{/* Cards to pick from */}
+					<div onClick={() => onPick()} title="Pick Card" className="relative text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
+						🃏
+						{cardsToPick ? <span className="bg-slate-600 flex items-center justify-center text-center -top-5 -right-5 absolute shadow-3xl shadow-white border-2 border-white p-3 rounded-2xl text-white text-4xl"><b>{cardsToPick}</b><b>🃏</b></span> : null}
+					</div>
+				</div>
+
+
+
+
+				{/* Cards in Hand */}
+				<div className="w-screen h-[12vh] max-h-[12vh] mb-6">
+					<div className="flex justify-center items-center gap-3 overflow-x-scroll w-[95vw]">
+						{cards.map(card =>
+							<PlayingCard
+								onPlay={() => onPlayCard(card)}
+								key={card.index}
+								colorDemand={false}
+								isDark={!lightMode}
+								color={card.color}>
+								<span className="font-extrabold">{card.getText()}</span>
+							</PlayingCard>
 						)}
+					</div>
 				</div>
-				<div className="flex gap-5">
-					{currentPlayerIndex == meIndex ? <div>Your Turn</div> : null}
-					<div>{playerTime}s</div>
-				</div>
-				<div>Game Time: <div>{gameTime}s</div></div>
-			</section>
 
 
 
-
-			{/* Cards on the table */}
-			<div className="h-[80vh] flex gap-4 justify-center items-center align-middle">
-
-				{/* Cards thrown */}
-				<PlayingCard
-					sx={{ fontSize: 60, height: "33%", minWidth: 170 }}
-					isDark={!lightMode}
-					color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
-					{lightMode ? currentCard.getText() : currentCard.getText(darkCards)}
-				</PlayingCard>
-
-				{/* Cards to pick from */}
-				<div onClick={() => onPick()} title="Pick Card" className="text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
-					🃏
-				</div>
-			</div>
-
-
-
-
-			{/* Cards in Hand */}
-			<div className="w-screen h-[12vh] max-h-[12vh] mb-6">
-				<div className="flex justify-center items-center gap-3 overflow-x-scroll w-[95vw]">
-					{cards.map(card =>
-						<PlayingCard
-							onPlay={() => onPlayCard(card)}
-							key={card.index}
-							isDark={!lightMode}
-							color={card.color}>
-							{card.getText()}
-						</PlayingCard>
-					)}
-				</div>
-			</div>
-
-
-
-			{/* Bottom buttons options */}
-			<div className="w-screen max-h-[5vh] h-[5vh]">
+				{/* Bottom buttons options */}
+				{/* <div className="w-screen max-h-[5vh] h-[5vh]">
 				<div className="flex gap-4 justify-center items-center">
 					<button onClick={onScoreCheck} title="Score Check" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📃 Score</button>
 					<button onClick={onTalk} title="Talk" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Talk</button>
 					<button onClick={onFlipCards} title="Flip Cards" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">🎤 Flip</button>
 					<button onClick={onLeave} title="Leave" className="text-sm rounded-3xl py-2 px-4 bg-gradient-to-bl from-blue-700 to-purple-600 shadow-lg cursor-pointer text-white font-semibold hover:font-bold hover:shadow-2xl duration-500">📴 Leave</button>
 				</div>
-			</div>
+			</div> */}
 
 
 
-			{/* Choose Color Dialogue */}
-			{chooseColor != null && <dialog open={chooseColor} style={{ background: "none" }} onClose={() => setChooseColor(null)}>
-				<div className="w-screen h-screen bg-[#1c1c1cbf] flex flex-col items-center justify-center">
-					<p className="text-white text-3xl my-4 text-center">Choose a Color</p>
-					<div className="mx-4 justify-center p-4 flex gap-4 ">
-						{COLOURS.map(color =>
-							<button
-								key={color}
-								style={{ background: color, border: color == chooseColor.color ? "6px solid white" : undefined }}
-								className="rounded-full p-8 shadow-md hover:shadow-2xl duration-200"
-								onClick={() => {
-									setChooseColor({ ...chooseColor, color });
-									onPlayCard(chooseColor.card, color);
-								}}>
-							</button>
-						)}
+				{/* Choose Color Dialogue */}
+				{chooseColor != null && <dialog open={chooseColor} style={{ background: "none" }} onClose={() => setChooseColor(null)}>
+					<div className="w-screen h-screen bg-[#1c1c1cbf] flex flex-col items-center justify-center">
+						<p className="text-white text-3xl my-4 text-center">Choose a Color</p>
+						<div className="mx-4 justify-center p-4 flex gap-4 ">
+							{COLOURS.map(color =>
+								<button
+									key={color}
+									style={{ background: color, border: color == chooseColor.color ? "6px solid white" : undefined }}
+									className="rounded-full p-8 shadow-md hover:shadow-2xl duration-200"
+									onClick={() => {
+										setChooseColor({ ...chooseColor, color });
+										onPlayCard(chooseColor.card, color);
+									}}>
+								</button>
+							)}
+						</div>
+						<p className="text-white text-lg italic my-4 text-center">Press ESC to cancel</p>
 					</div>
-					<p className="text-white text-lg italic my-4 text-center">Press ESC to cancel</p>
-				</div>
-			</dialog>}
+				</dialog>}
 
+			</div>
 		</div>
 	)
 }

@@ -8,7 +8,7 @@ import io from 'socket.io-client';
 import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
 import GameAudio from "./components/GameAudio";
-
+import { ToastContainer } from 'react-toastify';
 export const BACKENDURL = 'http://localhost:3002' //http://localhost:3002 : 'https://bc.m2kdevelopments.com'
 // eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
@@ -101,6 +101,7 @@ function App() {
         {page === PAGE_GAMELOBBY && <GameLobby />}
         {page === PAGE_JOINGAME && <GameJoin joinRoomId={joinRoomId} />}
         {page === PAGE_GAME && <BattleCards />}
+        <ToastContainer />
       </main>
     </ContextData.Provider>
   )

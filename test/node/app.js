@@ -84,7 +84,7 @@ class Player {
 
     /**
      * Get the number cards with the same color
-     * @param {String} color red, yellow, green or blue
+     * @param {String} color red, orange, green or blue
      * @param {Array} lightCards 
      * @param {Array} darkCards 
      * @returns number cards with the same color

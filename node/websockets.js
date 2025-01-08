@@ -185,7 +185,8 @@ exports.onConnection = (socket) => {
         if (clockwise) nextPlayer = (+playerIndex + 2) % playerCount;
         else {
           if (playerCount == 2) nextPlayer = currentPlayer;// if there are only two players
-          else if (playerIndex - 2 < 0) nextPlayer = playerCount - (playerIndex - 2);
+          else if (playerIndex == 0) nextPlayer = playerCount - 2; // skip to second last person
+          else if (playerIndex == 1) nextPlayer = playerCount - 1; // skip to last person
           else nextPlayer -= 2;
         }
       }

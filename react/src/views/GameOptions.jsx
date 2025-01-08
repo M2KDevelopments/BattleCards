@@ -4,6 +4,9 @@ import AREAS from '../jsons/areas.json';
 import CHARACTERS from '../jsons/characters.json';
 import { ContextData, PAGE_GAMELOBBY, socket } from '../App';
 import DarkOverlay from '../components/DarkOverlay';
+import swal from 'sweetalert';
+
+
 const numberOfDecks = 8;
 
 export default function GameOptions() {
@@ -44,8 +47,22 @@ export default function GameOptions() {
   }
 
 
-  const onGameTime = () => {
-    const timestring = window.prompt('Game Time (seconds)', gameTime);
+  const onGameTime = async () => {
+    const timestring = await swal({
+      title: 'Game Time',
+      text: `Enter the game time (seconds)`,
+      icon: "info",
+      content: {
+        element: 'input',
+        attributes: {
+          value: gameTime.toString()
+        }
+      },
+      buttons: ['Cancel', 'Set']
+    });
+
+
+    if (!timestring) return;
     try {
       const time = parseInt(timestring.trim());
       if (isNaN(time)) return;
@@ -56,8 +73,23 @@ export default function GameOptions() {
   }
 
 
-  const onStartPoints = () => {
-    const s = window.prompt('Start Points', score);
+  const onStartPoints = async () => {
+    const s = await swal({
+      title: 'Start Points',
+      text: `Enter the starting points for the game`,
+      icon: "info",
+      content: {
+        element: 'input',
+        attributes: {
+          value: score.toString()
+        }
+      },
+      buttons: ['Cancel', 'Set']
+    });
+
+    if (!s) return;
+
+
     try {
       const pts = parseInt(s.trim());
       if (isNaN(pts)) return;
