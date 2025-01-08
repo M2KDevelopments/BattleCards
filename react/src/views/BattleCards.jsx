@@ -616,7 +616,7 @@ function BattleCards() {
 			<div style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }} className="w-screen h-screen flex flex-col">
 
 				{/* Game Info */}
-				<div className="flex items-center justify-end gap-4">
+				<div className="flex items-center justify-end gap-4 pt-8">
 					{currentPlayerIndex == meIndex ?
 						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-amber-400 text-white">Your Turn: <b>{playerTime}s</b></div>
 						:
@@ -627,8 +627,8 @@ function BattleCards() {
 
 				{/* Players' Info */}
 				<section className="fixed top-0 left-0 w-screen z-10 text-white">
-					<div className="flex gap-2 p-3">
-						<span className="text-4xl">{clockwise ? "👉" : "👈"}</span>
+					<div className="flex gap-2 p-3 items-center">
+						<span className="text-6xl">{clockwise ? "👉" : "👈"}</span>
 						{players
 							.map((player, index) => {
 								const image = playerIcons.get(player.name).image;
@@ -636,10 +636,10 @@ function BattleCards() {
 								else return { ...player, me: meIndex == index, image }
 							})
 							.map((player) =>
-								<div className="flex flex-col gap-2" key={player.id}>
+								<div className="flex flex-col items-center gap-2" key={player.id}>
 									<div
 										className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
-										style={{ border: player.playing ? "2px solid gold" : player.me ? "2px solid cyan" : undefined, backgroundImage: `url(${player.image})`, backgroundSize: '100%', overflow: 'hidden' }}
+										style={{ border: player.playing ? "2px solid gold" : player.me ? "5px solid cyan" : undefined, backgroundImage: `url(${player.image})`, backgroundSize: '100%', overflow: 'hidden' }}
 										title={player.name + " (" + player.score + "pts)"}
 									>
 									</div>
