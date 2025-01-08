@@ -581,30 +581,74 @@ function BattleCards() {
 				{countdown ? <Loading area={gameoptions.game.area} countDown={countdown} /> :
 
 					// Game Over Screen
-					<div>
-						<h1>Game Over</h1>
-						{gameoptions.host ? <button onClick={onStartNewGame}>Start New Game</button> : null}
-						{players.map(player =>
-							<div key={player.id} className="flex flex-col gap-3">
-								<span>{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
-								<div className="flex gap-4">
-									{player.getCards(lightCards, darkCards, false).map((card, i) =>
-										<div key={i} className="flex flex-col gap-3">
-											<PlayingCard
-												title={card.battleValue}
-												isDark={card.isDark()}
-												color={card.color}>
-												{card.getText()}
-											</PlayingCard>
-											<div>DMG: {card.battleValue}</div>
+					<div className="h-full w-full">
+						<DarkOverlay color="#00000077" />
+						<div className="flex flex-col gap-3 items-center p-4" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
+							<h1 className="tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
+							{gameoptions.host ? <button className="bg-pink-700 p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
+
+							<div className="relative z-10 p-8 grid gap-2 mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12">
+
+								{players
+									.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))
+									.map((player, index) =>
+										<div className="relative flex flex-col items-center gap-2" key={player.id}>
+											<div
+												className="shadow p-2 rounded-full w-28 h-28 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
+												style={{ backgroundImage: `url(${playerIcons.get(player.name).image})`, backgroundSize: '100%', overflow: 'hidden' }}
+												title={player.name + " (" + player.score + "pts)"}
+											>
+											</div>
+											<span className="absolute -top-5 -right-5 text-[12px] bg-amber-700 text-white py-1 px-2 rounded-lg" >{index + 1}</span>
+											<span className="text-[12px] bg-slate-700 text-white py-1 px-2 rounded-lg">{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
 										</div>
 									)}
-								</div>
+
 							</div>
-						)}
+
+							<div className="flex flex-col gap-2 bg-[#000000ad] z-20 h-[500px] overflow-scroll w-full">
+								{players
+									.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))
+									.map((player, index) =>
+										<div key={player.id} className="flex gap-3">
+											<div
+												className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
+												style={{ backgroundImage: `url(${playerIcons.get(player.name).image})`, backgroundSize: '100%', overflow: 'hidden' }}
+												title={player.name + " (" + player.score + "pts)"}
+											>
+											</div>
+											<div className="flex gap-4">
+												{player.getCards(lightCards, darkCards, false).map((card, i) =>
+													<div key={i} className="flex flex-col gap-3 ">
+														<PlayingCard
+															title={card.battleValue}
+															isDark={card.isDark()}
+															color={card.color}>
+															{card.getText()}
+														</PlayingCard>
+														<div className="text-white">DMG: {card.battleValue}</div>
+													</div>
+												)}
+											</div>
+										</div>
+									)}
+							</div>
+						</div>
+
+						{/* Show Main Character */}
+						<div
+							className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white'
+							style={{
+								backgroundImage: `url(${playerIcons.get(players.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))[0].name).image
+									})`,
+								backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden'
+							}}>
+
+						</div>
 					</div>
+
 				}
-			</div>
+			</div >
 		)
 	}
 
