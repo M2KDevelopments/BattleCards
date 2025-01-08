@@ -7,8 +7,9 @@ import GameLobby from "./views/GameLobby";
 import io from 'socket.io-client';
 import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
+import GameAudio from "./components/GameAudio";
 
-export const BACKENDURL = 'https://bc.m2kdevelopments.com'
+export const BACKENDURL = 'http://localhost:3002' //http://localhost:3002 : 'https://bc.m2kdevelopments.com'
 // eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
 
@@ -72,7 +73,7 @@ function App() {
     }
   });
 
-  
+
 
   // check if the url as a socket room id
   useEffect(() => {
@@ -92,7 +93,7 @@ function App() {
       gameoptions, setGameOptions
     }}>
       <main className="w-screen h-screen">
-
+        <GameAudio />
         {/* Show the correct page */}
         {page === PAGE_MENU && <MainMenu />}
         {page === PAGE_TUTORIAL && <Tutorial />}

@@ -11,7 +11,7 @@ function DarkOverlay({ color }) {
     //     document.body.style.background
     //     document.body.style.overflow = 'hidden';
     // }, [])
-
+    
     return (
         <div style={{ background: color || "#0000007a" }} className="pointer-events-none w-screen h-screen fixed top-0 left-0 z-0"></div>
     )

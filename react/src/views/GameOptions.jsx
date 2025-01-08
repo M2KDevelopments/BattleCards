@@ -1,68 +1,22 @@
 
-import { useContext, useState  } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import AREAS from '../jsons/areas.json';
 import CHARACTERS from '../jsons/characters.json';
 import { ContextData, PAGE_GAMELOBBY, socket } from '../App';
 import DarkOverlay from '../components/DarkOverlay';
-// import axios from 'axios';
-// const instance = axios.create()
 const numberOfDecks = 8;
-
 
 export default function GameOptions() {
 
-  const [playername, setPlayername] = useState("New Player");
+  const { setPage, gameoptions, setGameOptions } = useContext(ContextData); // page and gameoptions
+  const [playername, setPlayername] = useState(CHARACTERS[0].name);
   const [area, setArea] = useState(AREAS[0]);
-
-  // npcs players settings
-  // const [allNpcs, setAllNpcs] = useState([])
-  // const [npcPlayers, setNpcPlayers] = useState([]);
-
-  // page and gameoptions
-  const { setPage, gameoptions, setGameOptions } = useContext(ContextData);
-
   const [gameTime, setGameTime] = useState(gameoptions.gametime);
   const [score, setScore] = useState(gameoptions.startpoints)
 
-
-  // Get Npcs from backend
-  // useEffect(() => {
-  //   (async () => {
-  //     const response = await instance.get(`${BACKENDURL}/api/npcs`);
-  //     const npcs = response.data;
-  //     setAllNpcs(npcs);
-  //   })()
-  // }, [])
-
-
-  // const onAddCharacters = (e) => {
-  //   //prevent form from submitting
-  //   e.preventDefault();
-
-  //   // get the player from form data
-  //   const npcIndex = e.target.npc.value;
-
-  //   // if player was not choosen
-  //   if (npcIndex === "-1") return alert("Please select a player");
-
-  //   // check if the name already exists
-  //   if (npcPlayers.includes(allNpcs[npcIndex])) return alert(`${allNpcs[npcIndex].name} already exists`);
-
-  //   // if everything is good add player to list
-  //   npcPlayers.push(allNpcs[npcIndex]);
-  //   setNpcPlayers([...npcPlayers]);
-
-  // }
-
-
-  /**
-   * Remove the player from the list
-   * @param {String} name 
-   */
-  // const onRemovePlayers = (npc) => {
-  //   setNpcPlayers(npcPlayers.filter(n => n.id !== npc.id));
-  // }
-
+  const avatar = useMemo(() => {
+    return `avatars/${CHARACTERS.find(c => c.name == playername).id}.jpeg`;
+  }, [playername])
 
   const onPlay = () => {
 
@@ -78,13 +32,8 @@ export default function GameOptions() {
       startpoints: score
     }
 
-
     // check player name was entered
     if (playername.trim() == '') return alert("Please enter a name");
-
-    // check if at least one player was selected
-    // if (!npcPlayers.length) return alert("Please enter an opponent");
-
 
     // Host joins the game room as player
     socket.emit('join', { name: playername, roomId: gamesettings.roomId }, () => {
@@ -95,42 +44,64 @@ export default function GameOptions() {
   }
 
 
+  const onGameTime = () => {
+    const timestring = window.prompt('Game Time (seconds)', gameTime);
+    try {
+      const time = parseInt(timestring.trim());
+      if (isNaN(time)) return;
+      setGameTime(time);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+
+  const onStartPoints = () => {
+    const s = window.prompt('Start Points', score);
+    try {
+      const pts = parseInt(s.trim());
+      if (isNaN(pts)) return;
+      setScore(pts);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const onPlayerSelect = (character) => {
+    const { name, id } = character;
+    setPlayername(name);
+    const audio = new Audio(`audio/${id}.ogg`);
+    audio.play();
+    audio.onended = () => audio.remove();
+  }
+
   return (
     <>
       <DarkOverlay color="#00000077" />
-      <div className='z-20'>
+      <div className='z-20 overflow-hidden' style={{ backgroundImage: `url(areas/${area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 
-        <section className='flex gap-4 justify-center m-8'>
-          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={() => setGameTime(((gameTime + 100) % 1000) || 1000)}>Game Time: <span>{gameTime}</span>s</button>
-          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={() => setScore(((score + 100) % 5000) || 5000)}>Start Points: <span>{score}</span></button>
-          <button className='text-2xl z-10 px-6 py-2 rounded-2xl shadow-xl hover:shadow-2xl bg-purple-600 hover:bg-purple-900 duration-150 text-white' onClick={onPlay}>Create Game</button>
+        <section className='grid gap-2 mobile:grid-cols-1 phone:grid-cols-1 phone-xl:grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 m-6'>
+          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={onGameTime}>Game Time: <span>{gameTime}</span>s</button>
+          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={onStartPoints}>Start Points: <span>{score}</span></button>
+          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-pink-600 hover:bg-purple-900 duration-150 text-white' onClick={onPlay}>Create Game</button>
         </section>
 
+        {/* Show Main Character */}
+        <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
 
-        {/* Showing NPCs chosen */}
-        {/* {npcPlayers.map(npc =>
-        <div
-          onClick={() => onRemovePlayers(npc)}
-          key={npc.id}>{npc.name}
         </div>
-      )}
-
-      {/* Adding Characters */}
-        {/* <form onSubmit={onAddCharacters}>
-        <select name="npc" defaultValue="-1">
-          <option value="-1">Select Character</option>
-          {allNpcs.map((npc, index) => <option key={npc.id} value={index}>{npc.name}</option>)}
-        </select>
-        <button type='submit'>Add Player</button>
-      </form>   */}
-
 
         <section className='px-10 flex flex-col gap-3 justify-center mx-auto h-screen my-auto content-center items-center align-middle'>
-          <p className='z-20 text-6xl text-white w-full text-left font-black'>{playername}</p>
-          <div className='grid grid-cols-10 w-full'>
+          <p className='z-20 tablet:text-6xl laptop:text-8xl text-white w-full text-left font-black'>{playername}</p>
+          <div className='grid mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12 gap-2 w-full'>
             {
-              CHARACTERS.map(name =>
-                <div title={name} key={name} onClick={() => setPlayername(name)} className='m-4 z-20 border-2 border-white w-32 h-32  bg-none hover:bg-[#000000a4] duration-300'>
+              CHARACTERS.map(chr =>
+                <div
+                  key={chr.id}
+                  title={chr.name}
+                  style={{ borderWidth: chr.name === playername ? 4 : 2, backgroundImage: `url(avatars/${chr.id}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
+                  className='z-20 border-white w-28 h-28 bg-none rounded-lg hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
+                  onClick={() => onPlayerSelect(chr)}>
 
                 </div>
               )
@@ -139,10 +110,13 @@ export default function GameOptions() {
 
         </section>
 
-        <section className='fixed bottom-3 flex gap-4 justify-center w-screen p-4'>
+        <section className='fixed bottom-3 flex gap-4 justify-center w-screen p-4 z-30'>
           {AREAS.map(name =>
-            <div title={name} className='z-20 border-2 border-white w-24 h-24 rounded-xl bg-none hover:bg-[#000000a4] duration-300' onClick={() => setArea(name)} key={name}>
-              <span>{name}</span>
+            <div style={{ borderWidth: area === name ? 4 : 2, background: `url(areas/${name}.jpeg)`, backgroundImage: `url(areas/${name}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
+              title={name}
+              className='z-30 border-white w-24 h-24 rounded-xl bg-none hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
+              onClick={() => setArea(name)} key={name}>
+
             </div>
           )}
         </section>

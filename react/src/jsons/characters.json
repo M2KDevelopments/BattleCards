@@ -1,18 +1,54 @@
 [
-    "helios",
-    "bwereka",
-    "chisomo",
-    "george",
-    "lil gillz",
-    "gina",
-    "martin",
-    "maureen",
-    "mike",
-    "mimi",
-    "pempho",
-    "ron",
-    "themba",
-    "trey",
-    "ulemu",
-    "vin"
+    {
+        "id": "bright",
+        "name": "Helios"
+    },
+    {
+        "id": "bwereka",
+        "name": "B-ee"
+    },
+    {
+        "id": "chisomo",
+        "name": "King Curt"
+    },
+    {
+        "id": "george",
+        "name": "Jana"
+    },
+    {
+        "id": "jillian",
+        "name": "Lil Jillz"
+    },
+    {
+        "id": "martin",
+        "name": "Martin"
+    },
+    {
+        "id": "maureen",
+        "name": "Momo"
+    },
+    {
+        "id": "mike",
+        "name": "Meirvarge"
+    },
+    {
+        "id": "mimi",
+        "name": "Dr. Me"
+    },
+    {
+        "id": "pempho",
+        "name": "PVM"
+    },
+    {
+        "id": "ron",
+        "name": "Ronny"
+    },
+    {
+        "id": "themba",
+        "name": "Themba"
+    },
+    {
+        "id": "trey",
+        "name": "Trey"
+    }
 ]

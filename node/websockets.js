@@ -39,6 +39,11 @@ exports.onConnection = (socket) => {
   });
 
 
+  // socket should join room data 
+  socket.on('gameoptions', (data, callback) => {
+    socket.to(data.roomId).emit("ongameoptions", data)
+    callback(data);
+  });
 
 
   // when player clicks the ready button
