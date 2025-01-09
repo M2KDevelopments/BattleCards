@@ -18,7 +18,7 @@ export default function GameOptions() {
   const [score, setScore] = useState(gameoptions.startpoints)
 
   const avatar = useMemo(() => {
-    return `avatars/${CHARACTERS.find(c => c.name == playername).id}.jpeg`;
+    return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
   }, [playername])
 
   const onPlay = () => {

@@ -59,7 +59,7 @@ function BattleCards() {
 		const map = new Map();
 		for (const person of players) {
 			const c = CHARACTERS.find(c => c.name === person.name);
-			map.set(person.name, { ...person, id: c.id, image: `avatars/${c.id}.jpeg` })
+			map.set(person.name, { ...person, id: c.id, image: `avatars/${c.id}.jpeg`, banner: `banners/${c.id}.png` })
 		}
 		return map;
 	}, [players])
@@ -639,7 +639,7 @@ function BattleCards() {
 						<div
 							className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white'
 							style={{
-								backgroundImage: `url(${playerIcons.get(players.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))[0].name).image
+								backgroundImage: `url(${playerIcons.get(players.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))[0].name).banner
 									})`,
 								backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden'
 							}}>
