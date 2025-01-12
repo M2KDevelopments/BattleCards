@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { useContext, useEffect, useMemo, useState, useCallback, useReducer } from "react";
 import { ContextData, socket } from "../App";
 import { Card } from "../classes/card";
 import PlayingCard from '../components/PlayingCard';
@@ -15,6 +15,10 @@ import KeyboardAudio from "../components/KeyboardAudio";
 // the number seconds a player has to make a play.
 const PLAYER_PLAY_TIME = 15;
 
+// Game Over Options
+const GAMEOVER_RESULTS = 1;
+const GAMEOVER_CHAT = 2
+const GAMEOVER_STANDINGS = 3;
 
 function BattleCards() {
 
@@ -27,6 +31,7 @@ function BattleCards() {
 	const [battleMode, setBattleMode] = useState(false);
 	const [colorDemand, setColorDemand] = useState("");
 	const [gameOver, setGameOver] = useState(false);
+	const [gameOverMode, setGameOverMode] = useState(GAMEOVER_STANDINGS);
 	const [countdown, setCountdown] = useState(0);
 	const [cardsToPick, setCardsToPick] = useState(0);
 	const [pickUntil, setPickUntil] = useState([]);
@@ -45,6 +50,15 @@ function BattleCards() {
 	//players 
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [players, setPlayers] = useState(gameoptions.game.players)
+
+	// useReducer to be used for multiple or complicated useStates
+	const reducer = (state, action) => {
+		// adding a new chat message
+		if (action.chat) return { ...state, chats: [...state.chats, action.chat] };
+		return state;
+	}
+	const [state, dispatch] = useReducer(reducer, { chats: [] })
+
 
 	// get index of this player
 	const meIndex = useMemo(() => players.findIndex(p => p.id == socket.id), [players])
@@ -336,6 +350,12 @@ function BattleCards() {
 		}
 		socket.on('onsound', onSound);
 
+
+		// when message comes in data = {chat: {name, message}}
+		const onChat = (data) => dispatch({ chat: data.chat })
+		socket.on('onchat', onChat);
+
+
 		// on dismount remove listener
 		return () => {
 			socket.off('ontimer', onTimer);
@@ -345,12 +365,28 @@ function BattleCards() {
 			socket.off('onloadgame', onLoadGame);
 			socket.off('ongameover', onGameOver);
 			socket.off('onsound', onSound);
+			socket.off('onchat', onChat);
 			clearInterval(t)
 		}
 	}, [cardIndexOnTable, lightCards, darkCards, players, cardsOnTable,
 		playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise,
 		battleMode, lightMode, cardsToPick, pickUntil
 	]);
+
+
+
+	const onSendMessageToChat = (e) => {
+		//prevenet form for submitting and refreshing
+		e.preventDefault();
+
+		// get message
+		const message = e.target.chat.value;
+
+		// send message via websockets to a room
+		socket.emit('chat', { name: gameoptions.playername, message: message, roomId: gameoptions.roomId }, dispatch);
+
+		e.target.chat.value = "";
+	}
 
 
 	/**
@@ -389,7 +425,6 @@ function BattleCards() {
 		}
 
 		// add pick until color cards.
-		console.log({ pickUntil })
 		for (const color of pickUntil) {
 			for (const i in lightCards) {
 				const lCard = lightCards[i]
@@ -639,7 +674,7 @@ function BattleCards() {
 	// On Game Over
 	if (gameOver) {
 		return (
-			<div className="w-screen h-screen flex flex-col">
+			<div className="w-screen h-screen flex flex-col" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 				{countdown ? <Loading area={gameoptions.game.area} countDown={countdown} /> :
 
 					// Game Over Screen
@@ -647,30 +682,65 @@ function BattleCards() {
 						<DarkOverlay color="#00000077" />
 						<KeyboardAudio name={players[meIndex].name} roomId={gameoptions.roomId} />
 						<div className="z-20 relative w-full mx-auto"><Confetti width={800} height={600} /></div>
-						<div className="flex flex-col gap-3 items-center p-4" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
-							<h1 className="tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
-							{gameoptions.host ? <button className="bg-pink-700 p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
+						<div className="flex flex-col gap-3 items-center p-4" >
+							<h1 className="phone:text-3xl tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
+							<div className="flex gap-2">
+								{gameoptions.host ? <button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
+								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_CHAT)}>Chat ({state.chats.length})</button>
+								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_STANDINGS)}>Standings</button>
+								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_RESULTS)}>Results</button>
+							</div>
 
-							<div className="relative z-10 p-8 flex overflow-x-scroll tablet:w-[600px] laptop:w-[1000px] desktop:w-[1280px]">
+
+							{/* Game Chat */}
+							{gameOverMode == GAMEOVER_CHAT ? <div className="flex flex-col w-full">
+								{/* Show the chat message */}
+								<div className="mobile:h-[400px] mobile:max-h-[400px] phone:h-[400px] phone:max-h-[400px] phone-xl:h-[400px] phone-xl:max-h-[500px] tablet-xl:h-[500px] tablet:max-h-[700px] overflow-y-scroll bg-[#39393962] z-10 relative mx-8 flex flex-col gap-1 p-2">
+									{state.chats.reverse().map((chat, index) =>
+										<h6 key={index} className="flex gap-2 items-center">
+											<img src={playerIcons.get(chat.name).image} alt={chat.name} className="w-8 h-8 rounded-full" />
+											<b style={{ color: playerIcons.get(chat.name).color }} className="text-pink-200">{chat.name}: </b>
+											<span className="text-white">{chat.message}</span>
+										</h6>)}
+								</div>
+
+								{/* Submit a message to the lobby */}
+								<form onSubmit={onSendMessageToChat} className="w-full flex z-10 relative px-8 py-3">
+									<input className="w-full p-4 rounded-s-md text-white bg-[#3b3b3b8b]" type="text" required name="chat" maxLength={300} placeholder="Enter your t̶o̶x̶i̶c̶  message here..." />
+									<button className="bg-pink-900 p-2 rounded-e-md text-white hover:bg-purple-700 duration-500 cursor-pointer" type="submit">Send Message</button>
+								</form>
+
+							</div> : null}
+
+
+							{/* Standings */}
+							{gameOverMode == GAMEOVER_STANDINGS ? <div className="relative z-10 mobile:p-1 phone:p-1 tablet:p-1 laptop:p-8 flex flex-col overflow-y-scroll w-full">
 
 								{players
-									.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))
+									.sort((a, b) => (b.score - b.getPotentialGameEndDamage(lightCards, darkCards)) - (a.score - a.getPotentialGameEndDamage(lightCards, darkCards)))
 									.map((player, index) =>
-										<div className="relative flex flex-col items-center gap-2" key={player.id}>
+										<div className="relative flex items-center gap-2" key={player.id}>
+											<span className="text-[12px] bg-amber-700 text-white py-1 px-2 rounded-lg" >{index + 1}</span>
 											<div
 												className="shadow p-2 rounded-full phone:w-10 phone:h-10 mobile:w-10 mobile:h-10 tablet:w-10 tablet:h-10 laptop:w-28 laptop:h-28 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
 												style={{ backgroundImage: `url(${playerIcons.get(player.name).image})`, backgroundSize: '100%', overflow: 'hidden' }}
 												title={player.name + " (" + player.score + "pts)"}
 											>
 											</div>
-											<span className="absolute -top-5 -right-5 text-[12px] bg-amber-700 text-white py-1 px-2 rounded-lg" >{index + 1}</span>
 											<span className="text-[12px] bg-slate-700 text-white py-1 px-2 rounded-lg">{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)} = {player.score - player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
+											{
+												players.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))[0] == player ?
+													<span className="text-[12px] bg-slate-700 text-amber-500 font-extrabold py-1 px-2 rounded-lg">Winner!!!</span>
+													: null
+											}
 										</div>
 									)}
 
-							</div>
+							</div> : null}
 
-							<div className="flex flex-col gap-2 bg-[#000000ad] z-20 h-[500px] overflow-scroll w-full">
+
+							{/* Game Results */}
+							{gameOverMode == GAMEOVER_RESULTS ? <div className="flex flex-col gap-2 bg-[#000000ad] z-20 h-[500px] overflow-scroll w-full">
 								{players
 									.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))
 									.map((player, index) =>
@@ -688,7 +758,7 @@ function BattleCards() {
 															title={card.battleValue}
 															isDark={card.isDark()}
 															color={card.color}>
-															{card.getImage(darkCards, false)}
+															<img className="w-10 h-10" src={`/cards/${card.getImage(null, false)}`} />
 														</PlayingCard>
 														<div className="text-white">DMG: {card.battleValue}</div>
 													</div>
@@ -696,7 +766,7 @@ function BattleCards() {
 											</div>
 										</div>
 									)}
-							</div>
+							</div> : null}
 						</div>
 
 						{/* Show Main Character */}
