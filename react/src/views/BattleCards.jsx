@@ -16,7 +16,6 @@ import KeyboardAudio from "../components/KeyboardAudio";
 const PLAYER_PLAY_TIME = 15;
 
 
-
 function BattleCards() {
 
 	// get gameoptions that were saved from GameOptions Page in global variable
@@ -107,12 +106,20 @@ function BattleCards() {
 
 		// game timer
 		const onTimer = (time, gameover) => {
+			const audioMenu = document.getElementById("main-audio");
 			if (time > 0) setGameTime(time);
+			if (time == 60) {
+				// play game ending sound
+				audioMenu.src = "music/time.mp3";
+				toast("1 Minute Left Everyone");
+			}
 			else setGameTime(0);
 			if (gameover && !battleMode) {
+				setGameOver(true);
 				const audio = document.getElementById("gameover-audio");
 				audio.play();
-				setGameOver(true);
+				audioMenu.stop();
+				audioMenu.src = "music/menu.mp3";
 			}
 		}
 		socket.on('ontime', onTimer);
@@ -182,6 +189,17 @@ function BattleCards() {
 				setPlayers([...players]);
 
 
+				// play help sound
+				if (cardIndices.length >= 10) {
+					const name = players[currentPlayer].name;
+					const p = CHARACTERS.find(c => c.name === name);
+					const text = `${name} got punished`
+					socket.emit('sound', { folder: "audio", sound: `${p.id}-help`, text: text });
+				} else {
+					socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+				}
+
+
 				// update time
 				setPlayerTime(PLAYER_PLAY_TIME);
 
@@ -200,8 +218,6 @@ function BattleCards() {
 				// disable battle
 				setBattleMode(false)
 
-				// play audio
-				socket.emit('sound', { folder: "sound", sound: "next", text: "" });
 
 			} else setPlayerTime(time);// update time
 		}
@@ -340,23 +356,6 @@ function BattleCards() {
 		playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise,
 		battleMode, lightMode, cardsToPick, pickUntil
 	]);
-
-
-	const onScoreCheck = () => {
-
-	}
-
-	const onTalk = () => {
-
-	}
-
-	const onFlipCards = () => {
-
-	}
-
-	const onLeave = () => {
-
-	}
 
 
 	/**
@@ -522,7 +521,7 @@ function BattleCards() {
 					socket.emit('sound', { folder: "sound", sound: "flip", text: "" });
 				} else if (card.type == 'jump') {
 					socket.emit('sound', { folder: "sound", sound: "jump", text: "" });
-				} else if (card.type == 'pick' && cardsToPick == 24) {
+				} else if (card.type == 'pick' && ((cardsToPick % 10) + card.value) >= 10) {
 					socket.emit('sound', { folder: "sound", sound: "toomuch", text: "" });
 				} else socket.emit('sound', { folder: "sound", sound: "next", text: "" });
 			} else {
