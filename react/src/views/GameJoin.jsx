@@ -15,10 +15,18 @@ function GameJoin({ joinRoomId }) {
         return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
     }, [playername])
 
+
+
     // send message to server websocket for this player to join room.
     const onJoin = () => {
         if (playername.trim() == "") return alert('Please enter playername');
 
+        //play audio 
+        const audio = document.getElementById("main-audio");
+        audio.volume = 0.08;
+        audio.play();
+
+        // join websocket
         socket.emit('join', { name: playername, roomId: joinRoomId }, () => {
             console.log(`I've joined the room`);
             setGameOptions({ playername: playername, roomId: joinRoomId });

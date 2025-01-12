@@ -109,15 +109,17 @@ function BattleCards() {
 			const audioMenu = document.getElementById("main-audio");
 			if (time > 0) setGameTime(time);
 			else setGameTime(0);
+
+			if (time == 60) audioMenu.src = "music/time.mp3";
+
 			if (gameover && !battleMode) {
 				setGameOver(true);
 				const audio = document.getElementById("gameover-audio");
 				audio.play();
-				audioMenu.stop();
+				audioMenu.pause();
 				audioMenu.src = "music/menu.mp3";
 			}
 			// play game ending sound
-			if (time == 60) audioMenu.src = "music/time.mp3";
 		}
 		socket.on('ontime', onTimer);
 
@@ -154,16 +156,14 @@ function BattleCards() {
 				for (const cardIndex of cardsOnTable) allCardsInHand.add(cardIndex);
 
 				// choose cards from list that is not in hand or on the table
-				const cardIndices = []
+				const cardIndices = [];
 				for (let i = 0; i < (cardsToPick || 1); i++) {
 					const cardIndex = lightCards.findIndex((l, i) => !allCardsInHand.has(i));
 					if (cardIndex != -1) {
 						allCardsInHand.add(cardIndex);
 						cardIndices.push(cardIndex);
 					}
-
 				}
-
 
 
 				// add pick until color cards.
@@ -182,7 +182,7 @@ function BattleCards() {
 				}
 
 				// add card to player
-				players[currentPlayer].cards.add(...cardIndices);
+				players[currentPlayer].addCards(...cardIndices);
 				setPlayers([...players]);
 
 
@@ -191,10 +191,8 @@ function BattleCards() {
 					const name = players[currentPlayer].name;
 					const p = CHARACTERS.find(c => c.name === name);
 					const text = `${name} got punished`
-					socket.emit('sound', { folder: "audio", sound: `${p.id}-help`, text: text });
-				} else {
-					socket.emit('sound', { folder: "sound", sound: "next", text: "" });
-				}
+					onSound("audio", `${p.id}-help`, text)
+				} else onSound("sound", `next`, "")
 
 
 				// update time
@@ -391,6 +389,7 @@ function BattleCards() {
 		}
 
 		// add pick until color cards.
+		console.log({ pickUntil })
 		for (const color of pickUntil) {
 			for (const i in lightCards) {
 				const lCard = lightCards[i]
@@ -433,9 +432,9 @@ function BattleCards() {
 				const name = players[currentPlayerIndex].name;
 				const p = CHARACTERS.find(c => c.name === name);
 				const text = `${name} got punished`
-				socket.emit('sound', { folder: "audio", sound: `${p.id}-help`, text: text });
+				socket.emit('sound', { folder: "audio", sound: `${p.id}-help`, text: text, roomId: gameoptions.roomId });
 			} else {
-				socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+				socket.emit('sound', { folder: "sound", sound: "next", text: "", roomId: gameoptions.roomId });
 			}
 
 			// trigger next player
@@ -483,8 +482,9 @@ function BattleCards() {
 		}
 
 		//pick until
+		const pickCardsUntilColor = [...pickUntil]
 		if (playColorCard && card.type === "pickuntil") {
-			pickUntil.push(playColorCard)
+			pickCardsUntilColor.push(playColorCard)
 			setChooseColor(null)
 		}
 
@@ -501,7 +501,7 @@ function BattleCards() {
 			battleMode,
 			lightMode,
 			cardsToPick,
-			pickUntil,
+			pickUntil: pickCardsUntilColor,
 			colorDemand: playColorCard && card.type != "pickuntil" ? playColorCard : ""
 		}
 
@@ -513,22 +513,22 @@ function BattleCards() {
 			// send sound
 			if (battleMode) {
 				if (card.type == 'reverse') {
-					socket.emit('sound', { folder: "sound", sound: "reverse", text: "" });
+					socket.emit('sound', { folder: "sound", sound: "reverse", text: "", roomId: gameoptions.roomId });
 				} else if (card.type == 'flip') {
-					socket.emit('sound', { folder: "sound", sound: "flip", text: "" });
+					socket.emit('sound', { folder: "sound", sound: "flip", text: "", roomId: gameoptions.roomId });
 				} else if (card.type == 'jump') {
-					socket.emit('sound', { folder: "sound", sound: "jump", text: "" });
+					socket.emit('sound', { folder: "sound", sound: "jump", text: "", roomId: gameoptions.roomId });
 				} else if (card.type == 'pick' && ((cardsToPick % 10) + card.value) >= 10) {
-					socket.emit('sound', { folder: "sound", sound: "toomuch", text: "" });
-				} else socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+					socket.emit('sound', { folder: "sound", sound: "toomuch", text: "", roomId: gameoptions.roomId });
+				} else socket.emit('sound', { folder: "sound", sound: "next", text: "", roomId: gameoptions.roomId });
 			} else {
 				if (card.type == 'pick' && card.value == 2) {
-					socket.emit('sound', { folder: "sound", sound: "plus2", text: `🔥 ${players[currentPlayerIndex].name} has started the battle` });
+					socket.emit('sound', { folder: "sound", sound: "plus2", text: `🔥 ${players[currentPlayerIndex].name} has started the battle`, roomId: gameoptions.roomId });
 				} else if (card.type == 'pick') {
-					socket.emit('sound', { folder: "sound", sound: "pick", text: `🔥 ${players[currentPlayerIndex].name} has started the battle` });
+					socket.emit('sound', { folder: "sound", sound: "pick", text: `🔥 ${players[currentPlayerIndex].name} has started the battle`, roomId: gameoptions.roomId });
 				} else if (card.type == 'flip') {
-					socket.emit('sound', { folder: "sound", sound: "transition", text: "" });
-				} else socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+					socket.emit('sound', { folder: "sound", sound: "transition", text: "", roomId: gameoptions.roomId });
+				} else socket.emit('sound', { folder: "sound", sound: "next", text: "", roomId: gameoptions.roomId });
 			}
 
 
@@ -545,8 +545,9 @@ function BattleCards() {
 
 			// Notify player that this play is on one card
 			if (players[playerIndex].cards.size == 1) {
+
 				setTimeout(() => {
-					socket.emit('sound', { folder: "sound", sound: "onecard", text: `${players[playerIndex].name} is on one card` });
+					socket.emit('sound', { folder: "sound", sound: "onecard", text: `${players[playerIndex].name} is on one card`, roomId: gameoptions.roomId });
 				}, 300);
 			}
 
@@ -644,6 +645,7 @@ function BattleCards() {
 					// Game Over Screen
 					<div className="h-full w-full">
 						<DarkOverlay color="#00000077" />
+						<KeyboardAudio name={players[meIndex].name} roomId={gameoptions.roomId} />
 						<div className="z-20 relative w-full mx-auto"><Confetti width={800} height={600} /></div>
 						<div className="flex flex-col gap-3 items-center p-4" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 							<h1 className="tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
@@ -778,6 +780,11 @@ function BattleCards() {
 					<div role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
 						🃏
 						{cardsToPick ? <span className="bg-slate-600 flex items-center justify-center text-center -top-5 -right-5 absolute shadow-3xl shadow-white border-2 border-white p-3 rounded-2xl text-white text-4xl"><b>{cardsToPick}</b><b>🃏</b></span> : null}
+						{pickUntil.length ?
+							<div className="flex gap-2 relative bottom-2 left-0">
+								{pickUntil.map((color, index) => <span title={"Pick Until " + color} style={{ background: color }} key={color + index} className="w-10 h-10 rounded shadow-xl"></span>)}
+							</div>
+							: null}
 					</div>
 				</div>
 
@@ -785,7 +792,7 @@ function BattleCards() {
 
 
 				{/* Cards in Hand */}
-				<div className="w-screen h-[12vh] max-h-[12vh] mb-6">
+				<div className="w-screen h-[12vh] max-h-[12vh] mb-8">
 					<div className="flex justify-center items-center gap-3 overflow-x-scroll w-[95vw]">
 						{cards.map(card =>
 							<PlayingCard
