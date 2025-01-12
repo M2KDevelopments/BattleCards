@@ -1,9 +1,9 @@
 [
-    { "type": "pick", "battleValue":20, "value": 2, "howmany": 12, "light": true, "dark": false },
-    { "type": "pick", "battleValue": 40, "value": 4, "howmany": 8, "light": true, "dark": true },
-    { "type": "pick", "battleValue": 50,"value": 5, "howmany": 8, "light": false, "dark": true },
+    { "type": "pick", "battleValue":20, "value": 2, "howmany": 16, "light": true, "dark": false },
+    { "type": "pick", "battleValue": 40, "value": 4, "howmany": 12, "light": true, "dark": true },
+    { "type": "pick", "battleValue": 50,"value": 5, "howmany": 12, "light": false, "dark": true },
     { "type": "pick", "battleValue": 100,"value": 10, "howmany": 6, "light": false, "dark": true },
-    { "type": "pickuntil", "battleValue": 15,"value": 0, "howmany": 4, "light": false, "dark": true },
+    { "type": "pickuntil", "battleValue": 15,"value": 0, "howmany": 0, "light": false, "dark": true },
     { "type": "reverse","battleValue": 15, "value": 0, "howmany": 4, "light": true, "dark": true },
 
     { "type": "reversecolor","battleValue":15, "value": "orange","color":"orange", "howmany": 4, "light": true, "dark": true },

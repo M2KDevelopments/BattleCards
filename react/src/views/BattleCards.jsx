@@ -108,11 +108,6 @@ function BattleCards() {
 		const onTimer = (time, gameover) => {
 			const audioMenu = document.getElementById("main-audio");
 			if (time > 0) setGameTime(time);
-			if (time == 60) {
-				// play game ending sound
-				audioMenu.src = "music/time.mp3";
-				toast("1 Minute Left Everyone");
-			}
 			else setGameTime(0);
 			if (gameover && !battleMode) {
 				setGameOver(true);
@@ -121,6 +116,8 @@ function BattleCards() {
 				audioMenu.stop();
 				audioMenu.src = "music/menu.mp3";
 			}
+			// play game ending sound
+			if (time == 60) audioMenu.src = "music/time.mp3";
 		}
 		socket.on('ontime', onTimer);
 
