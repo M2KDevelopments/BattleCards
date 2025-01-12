@@ -11,7 +11,7 @@ function MainMenu() {
   // From Game Audio component
   function playGameMusic() {
     const audio = document.getElementById("main-audio");
-    audio.volume = 0.04;
+    audio.volume = 0.08;
     audio.play();
   }
 

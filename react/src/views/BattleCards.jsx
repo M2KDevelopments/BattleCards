@@ -110,9 +110,8 @@ function BattleCards() {
 			if (time > 0) setGameTime(time);
 			else setGameTime(0);
 			if (gameover && !battleMode) {
-				const audio = new Audio(`music/gameover.mp3`);
+				const audio = document.getElementById("gameover-audio");
 				audio.play();
-				audio.onended = () => audio.remove();
 				setGameOver(true);
 			}
 		}
@@ -427,11 +426,21 @@ function BattleCards() {
 
 		socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex, continueBattle) => {
 
-			socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+
 
 			// update player
 			players[currentPlayerIndex].addCards(...cardIndices);
 			setPlayers([...players]);
+
+			// play help sound
+			if (cardIndices.length >= 10) {
+				const name = players[currentPlayerIndex].name;
+				const p = CHARACTERS.find(c => c.name === name);
+				const text = `${name} got punished`
+				socket.emit('sound', { folder: "audio", sound: `${p.id}-help`, text: text });
+			} else {
+				socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+			}
 
 			// trigger next player
 			setCurrentPlayerIndex(nextPlayerIndex);
