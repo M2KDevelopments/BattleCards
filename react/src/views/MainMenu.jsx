@@ -10,9 +10,9 @@ function MainMenu() {
 
   // From Game Audio component
   function playGameMusic() {
-    // const audio = document.getElementById("main-audio");
-    // audio.volume = 0.04;
-    // audio.play();
+    const audio = document.getElementById("main-audio");
+    audio.volume = 0.04;
+    audio.play();
   }
 
   return (
