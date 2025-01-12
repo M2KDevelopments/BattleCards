@@ -85,6 +85,61 @@ export class Card {
     }
 
 
+    /**
+     * Get image for the card
+     * @param {Array<Card>} darkCards if you want to show the card dark text
+     * Get card battle image
+    */
+    getImage(darkCards = null, battleMode = false) {
+        if (this.index == undefined) return "";
+        if (darkCards) {
+            if (!this.darkId) return "";
+            const card = darkCards[this.darkId];
+            switch (card.type) {
+                case "jumpcolor":
+                case "jump":
+                    return battleMode ? "jump-battle.png" : "jump.png";
+                case "reversecolor":
+                    return `reverse-${card.color}.png`;
+                case "reverse":
+                    return "reverse.png";
+                case "iwant":
+                    return battleMode ? "iwant-battle.png" : "iwant.png";
+                case "pickuntil":
+                    return "pickuntil.png";
+                case "pick":
+                    return `plus${card.value}.gif`;
+                case "flip":
+                    return `flip.png`;
+                case "number":
+                    return `${card.value}${card.color}.png`;
+                default: return card.value;
+            }
+        }
+        switch (this.type) {
+            case "jumpcolor":
+            case "jump":
+                return battleMode ? "jump-battle.png" : "jump.png";
+            case "reversecolor":
+                return `reverse-${this.color}.png`;
+            case "reverse":
+                return "reverse.png";
+            case "iwant":
+                return battleMode ? "iwant-battle.png" : "iwant.png";
+            case "pickuntil":
+                return "pickuntil.png";
+            case "pick":
+                return `plus${this.value}.gif`;
+            case "flip":
+                return `flip.png`;
+            case "number":
+                return `${this.value}${this.color}.png`;
+            default: return this.value;
+        }
+
+    }
+
+
 
     /**
   * Get card battle value

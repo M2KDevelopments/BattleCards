@@ -5,6 +5,7 @@ import CHARACTERS from '../jsons/characters.json';
 import { ContextData, PAGE_GAMELOBBY, socket } from '../App';
 import DarkOverlay from '../components/DarkOverlay';
 import swal from 'sweetalert';
+import KeyboardAudio from '../components/KeyboardAudio';
 
 
 const numberOfDecks = 8;
@@ -110,6 +111,7 @@ export default function GameOptions() {
   return (
     <>
       <DarkOverlay color="#00000077" />
+      <KeyboardAudio name={playername} />
       <div className='z-20 overflow-hidden' style={{ backgroundImage: `url(areas/${area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 
         <section className='grid gap-2 mobile:grid-cols-1 phone:grid-cols-1 phone-xl:grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 m-6'>
@@ -119,7 +121,7 @@ export default function GameOptions() {
         </section>
 
         {/* Show Main Character */}
-        <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
+        <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 drop-shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
 
         </div>
 
@@ -131,6 +133,7 @@ export default function GameOptions() {
                 <div
                   key={chr.id}
                   title={chr.name}
+                  role="button"
                   style={{ borderWidth: chr.name === playername ? 4 : 2, backgroundImage: `url(avatars/${chr.id}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
                   className='z-20 border-white w-28 h-28 bg-none rounded-lg hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
                   onClick={() => onPlayerSelect(chr)}>
@@ -146,6 +149,7 @@ export default function GameOptions() {
           {AREAS.map(name =>
             <div style={{ borderWidth: area === name ? 4 : 2, background: `url(areas/${name}.jpeg)`, backgroundImage: `url(areas/${name}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
               title={name}
+              role="button"
               className='z-30 border-white w-24 h-24 rounded-xl bg-none hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
               onClick={() => setArea(name)} key={name}>
 

@@ -114,6 +114,19 @@ exports.onConnection = (socket) => {
   });
 
 
+  // when when audio should be played on all users
+  socket.on('audio', ({ name, playerId, num, roomId }) => {
+    socket.to(roomId).emit("onaudio", playerId, name, num);
+  });
+
+
+  // when when audio should be played on all users
+  socket.on('sound', ({ folder, sound, text, roomId }) => {
+    socket.to(roomId).emit("onsound", folder, sound, text);
+    socket.emit("onsound", folder, sound, text);
+  });
+
+
   // get the time of the current player
   socket.on('playertime', (data) => {
     const { roomId, playerTimer, playerIndex, playerCount, cardsToPick, pickUntil } = data;

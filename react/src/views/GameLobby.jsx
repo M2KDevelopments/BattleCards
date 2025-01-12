@@ -1,10 +1,12 @@
 import { useContext, useEffect, useMemo, useReducer, useState } from "react";
-import { ContextData, PAGE_GAME, socket } from "../App";
+import { ContextData, PAGE_GAME, PAGE_GAMEOPTIONS, socket } from "../App";
 import Loading from "../components/Loading";
 import Player from "../classes/player";
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
 import { toast } from 'react-toastify';
+import KeyboardAudio from "../components/KeyboardAudio";
+
 
 
 function GameLobby() {
@@ -214,15 +216,17 @@ function GameLobby() {
     return (
         <div>
             <DarkOverlay color="#00000077" />
+            <KeyboardAudio name={gameoptions.playername} roomId={gameoptions.roomId} />
             <div className="text-white h-screen" style={{ backgroundImage: `url(areas/${gameoptions.area || state.gameoptions.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
+                {gameoptions.host ? <button className='relative text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={() => setPage(PAGE_GAMEOPTIONS)}>Back</button> : null}
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative">Battle Cards Lobby <i>({state.gameoptions?.players?.length || state.players.length})</i></h1>
                 <h6 className="px-3">You: {gameoptions.playername}</h6>
 
                 {/* Game Options */}
-                <div className="grid phone:grid-cols-1 phone-xl:grid-cols-3 gap-3 py-2 px-8">
-                    <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Game Time: <span>{gameoptions.gametime || state.gameoptions.gametime}</span>s</div>
-                    <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Start Points: <span>{gameoptions.startpoints || state.gameoptions.startpoints}</span></div>
-                    {!gameoptions.host ? <button className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCopyGameLink}>Copy Invite Link</button> : null}
+                <div className="flex gap-3 py-1 px-8">
+                    {/* <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Game Time: <span>{gameoptions.gametime || state.gameoptions.gametime}</span>s</div>
+                    <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Start Points: <span>{gameoptions.startpoints || state.gameoptions.startpoints}</span></div> */}
+                    {!gameoptions.host ? <button className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCopyGameLink}>Copy Link</button> : null}
                 </div>
 
 
@@ -232,17 +236,17 @@ function GameLobby() {
                     {/* Join Link */}
                     <div className="w-full flex z-10 relative px-8">
                         <input className="w-full p-4 rounded-s-md text-white bg-[#efefef4d]" disabled={true} value={`${window.location.href}#join${gameoptions.roomId}`} />
-                        <button className="w-48 bg-pink-700 p-4 rounded-e-sm text-white hover:bg-amber-700 duration-500 cursor-pointer" onClick={onCopyGameLink}>Copy Join Link</button>
+                        <button className="w-48 bg-pink-700 p-4 rounded-e-sm text-white hover:bg-amber-700 duration-500 cursor-pointer" onClick={onCopyGameLink}>Copy Link</button>
                     </div>
 
                 </div> : null}
 
 
                 {/* Player Icons */}
-                <div className="relative z-10 p-8 grid gap-2 mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12">
+                <div className="relative z-10 py-2 px-8 flex overflow-x-scroll tablet:w-[600px] laptop:w-[1000px] desktop:w-[1280px]">
                     {state.gameoptions.players.map(p =>
                         <div key={playerIcons.get(p.name).id} className="relative">
-                            <img title={p.name} className="w-16 h-16 rounded-full shadow-lg" src={playerIcons.get(p.name).image} />
+                            <img title={p.name} className="phone:w-10 phone:h-10 mobile:w-10 mobile:h-10 tablet:w-10 tablet:h-10 laptop:w-16 laptop:h-16 rounded-full shadow-lg" src={playerIcons.get(p.name).image} />
                             {p.ready ?
                                 <span className="relative rounded-2xl bg-slate-800 text-white p-1 text-sm border-2 border-slate-700">Ready</span>
                                 : null}
@@ -252,7 +256,12 @@ function GameLobby() {
                 </div>
 
                 {/* Show the chat message */}
-                <div className="h-[200px] max-h-[300px] overflow-y-scroll bg-[#39393962] z-10 relative mx-8 flex flex-col gap-1 p-2">
+                <div className="mobile:h-[200px] mobile:max-h-[300px] phone:h-[200px] phone:max-h-[300px] phone-xl:h-[200px] phone-xl:max-h-[300px] tablet-xl:h-[300px] tablet:max-h-[400px] overflow-y-scroll bg-[#39393962] z-10 relative mx-8 flex flex-col gap-1 p-2">
+                    <h6 className="flex gap-2 items-center">
+                        <img src="icon.png" alt="battlecards" className="w-8 h-8 rounded-full" />
+                        <b className="text-blue-200">Battle Card: </b>
+                        <span>Game Time is <b className="text-orange-400">{gameoptions.gametime || state.gameoptions.gametime}s</b> and your starting points are <b className="text-orange-400">{gameoptions.startpoints || state.gameoptions.startpoints}pts</b></span>
+                    </h6>
                     {state.chats.reverse().map((chat, index) =>
                         <h6 key={index} className="flex gap-2 items-center">
                             <img src={playerIcons.get(chat.name).image} alt={chat.name} className="w-8 h-8 rounded-full" />
@@ -263,7 +272,7 @@ function GameLobby() {
 
                 {/* Submit a message to the lobby */}
                 <form onSubmit={onSendMessageToChat} className="w-full flex z-10 relative px-8 py-3">
-                    <input className="w-full p-4 rounded-s-md text-white bg-[#3b3b3b8b]" type="text" required name="chat" maxLength={300} placeholder="Enter your toxic message here..." />
+                    <input className="w-full p-4 rounded-s-md text-white bg-[#3b3b3b8b]" type="text" required name="chat" maxLength={300} placeholder="Enter your t̶o̶x̶i̶c̶  message here..." />
                     <button className="bg-pink-900 p-2 rounded-e-md text-white hover:bg-purple-700 duration-500 cursor-pointer" type="submit">Send Message</button>
                 </form>
 

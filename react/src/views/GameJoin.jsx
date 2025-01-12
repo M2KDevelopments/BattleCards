@@ -2,6 +2,7 @@ import { useContext, useMemo, useState } from "react";
 import { ContextData, PAGE_GAMELOBBY, socket } from "../App";
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
+import KeyboardAudio from "../components/KeyboardAudio";
 
 
 // eslint-disable-next-line react/prop-types
@@ -11,7 +12,7 @@ function GameJoin({ joinRoomId }) {
     const { setGameOptions, setPage } = useContext(ContextData);
     const [playername, setPlayername] = useState(CHARACTERS[0].name);
     const avatar = useMemo(() => {
-        return `avatars/${CHARACTERS.find(c => c.name == playername).id}.jpeg`;
+        return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
     }, [playername])
 
     // send message to server websocket for this player to join room.
@@ -34,11 +35,12 @@ function GameJoin({ joinRoomId }) {
         audio.onended = () => audio.remove();
     }
 
-    
+
 
     return (
         <div>
             <DarkOverlay color="#00000077" />
+            <KeyboardAudio name={playername} />
             <div className="h-screen flex flex-col items-center m-2 gap-2 overflow-hidden" style={{ backgroundImage: `url(join.png)`, backgroundSize: '100%', overflow: 'hidden' }}>
                 <img src="logo.png" width={100} alt="Battle Cards" />
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative text-white">Battle Cards Join Room</h1>
@@ -47,7 +49,7 @@ function GameJoin({ joinRoomId }) {
                 <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-pink-600 hover:bg-purple-900 duration-150 text-white' onClick={onJoin}>Join Game</button>
 
                 {/* Show Main Character */}
-                <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
+                <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 drop-shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
 
                 </div>
 

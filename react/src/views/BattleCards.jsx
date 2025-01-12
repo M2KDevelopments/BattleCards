@@ -9,7 +9,8 @@ import COLOURS from "../jsons/colors.json";
 import { toast } from 'react-toastify';
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
-
+import Confetti from 'react-confetti'
+import KeyboardAudio from "../components/KeyboardAudio";
 
 // the number seconds a player has to make a play.
 const PLAYER_PLAY_TIME = 15;
@@ -107,7 +108,13 @@ function BattleCards() {
 		// game timer
 		const onTimer = (time, gameover) => {
 			if (time > 0) setGameTime(time);
-			if (gameover) setGameOver(true);
+			else setGameTime(0);
+			if (gameover && !battleMode) {
+				const audio = new Audio(`music/gameover.mp3`);
+				audio.play();
+				audio.onended = () => audio.remove();
+				setGameOver(true);
+			}
 		}
 		socket.on('ontime', onTimer);
 
@@ -116,6 +123,9 @@ function BattleCards() {
 			setGameTime(0);
 			setGameOver(true);
 			setChooseColor(null);
+			const audio = new Audio(`music/gameover.mp3`);
+			audio.play();
+			audio.onended = () => audio.remove();
 		}
 		socket.on('ongameover', onGameOver);
 
@@ -190,6 +200,9 @@ function BattleCards() {
 
 				// disable battle
 				setBattleMode(false)
+
+				// play audio
+				socket.emit('sound', { folder: "sound", sound: "next", text: "" });
 
 			} else setPlayerTime(time);// update time
 		}
@@ -304,6 +317,15 @@ function BattleCards() {
 		}
 		socket.on('onloadgame', onLoadGame);
 
+
+		function onSound(folder, sound, text) {
+			const audio = new Audio(`${folder}/${sound}.mp3`);
+			audio.play();
+			audio.onended = () => audio.remove();
+			if (text) toast(`${text}`);
+		}
+		socket.on('onsound', onSound);
+
 		// on dismount remove listener
 		return () => {
 			socket.off('ontimer', onTimer);
@@ -312,6 +334,7 @@ function BattleCards() {
 			socket.off('onplaycard', onPlayCards);
 			socket.off('onloadgame', onLoadGame);
 			socket.off('ongameover', onGameOver);
+			socket.off('onsound', onSound);
 			clearInterval(t)
 		}
 	}, [cardIndexOnTable, lightCards, darkCards, players, cardsOnTable,
@@ -404,6 +427,8 @@ function BattleCards() {
 
 		socket.emit('pickcard', data, (cardIndices, currentPlayerIndex, nextPlayerIndex, continueBattle) => {
 
+			socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+
 			// update player
 			players[currentPlayerIndex].addCards(...cardIndices);
 			setPlayers([...players]);
@@ -480,6 +505,28 @@ function BattleCards() {
 			// { lightMode: lightMode, clockwise: clockwise, battleMode, cardsToPick, pickcard, colorDemand } = gamestate
 
 
+			// send sound
+			if (battleMode) {
+				if (card.type == 'reverse') {
+					socket.emit('sound', { folder: "sound", sound: "reverse", text: "" });
+				} else if (card.type == 'flip') {
+					socket.emit('sound', { folder: "sound", sound: "flip", text: "" });
+				} else if (card.type == 'jump') {
+					socket.emit('sound', { folder: "sound", sound: "jump", text: "" });
+				} else if (card.type == 'pick' && cardsToPick == 24) {
+					socket.emit('sound', { folder: "sound", sound: "toomuch", text: "" });
+				} else socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+			} else {
+				if (card.type == 'pick' && card.value == 2) {
+					socket.emit('sound', { folder: "sound", sound: "plus2", text: `🔥 ${players[currentPlayerIndex].name} has started the battle` });
+				} else if (card.type == 'pick') {
+					socket.emit('sound', { folder: "sound", sound: "pick", text: `🔥 ${players[currentPlayerIndex].name} has started the battle` });
+				} else if (card.type == 'flip') {
+					socket.emit('sound', { folder: "sound", sound: "transition", text: "" });
+				} else socket.emit('sound', { folder: "sound", sound: "next", text: "" });
+			}
+
+
 			// update game state
 			setClockwise(gamestate.clockwise);
 			setLightMode(gamestate.lightMode);
@@ -490,6 +537,14 @@ function BattleCards() {
 
 			players[playerIndex].cards.delete(cardIndex);
 			setPlayers([...players])
+
+			// Notify player that this play is on one card
+			if (players[playerIndex].cards.size == 1) {
+				setTimeout(() => {
+					socket.emit('sound', { folder: "sound", sound: "onecard", text: `${players[playerIndex].name} is on one card` });
+				}, 300);
+			}
+
 
 			// updates player card in hand and table cards
 			cardsOnTable.add(cardIndex)
@@ -518,6 +573,7 @@ function BattleCards() {
 		const options = { ...gameoptions, anothergame: true, players: players.map(p => p.getJSON(lightCards, darkCards, true)), };
 		socket.emit('loadgame', options, () => {
 			// tell backend to start a set interval timer
+			console.log('Time', gameoptions.game.gametime + 15);
 			socket.emit('starttimer', gameoptions.roomId, gameoptions.game.gametime + 15);
 		});
 
@@ -583,24 +639,25 @@ function BattleCards() {
 					// Game Over Screen
 					<div className="h-full w-full">
 						<DarkOverlay color="#00000077" />
+						<div className="z-20 relative w-full mx-auto"><Confetti width={800} height={600} /></div>
 						<div className="flex flex-col gap-3 items-center p-4" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 							<h1 className="tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
 							{gameoptions.host ? <button className="bg-pink-700 p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
 
-							<div className="relative z-10 p-8 grid gap-2 mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12">
+							<div className="relative z-10 p-8 flex overflow-x-scroll tablet:w-[600px] laptop:w-[1000px] desktop:w-[1280px]">
 
 								{players
 									.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))
 									.map((player, index) =>
 										<div className="relative flex flex-col items-center gap-2" key={player.id}>
 											<div
-												className="shadow p-2 rounded-full w-28 h-28 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
+												className="shadow p-2 rounded-full phone:w-10 phone:h-10 mobile:w-10 mobile:h-10 tablet:w-10 tablet:h-10 laptop:w-28 laptop:h-28 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
 												style={{ backgroundImage: `url(${playerIcons.get(player.name).image})`, backgroundSize: '100%', overflow: 'hidden' }}
 												title={player.name + " (" + player.score + "pts)"}
 											>
 											</div>
 											<span className="absolute -top-5 -right-5 text-[12px] bg-amber-700 text-white py-1 px-2 rounded-lg" >{index + 1}</span>
-											<span className="text-[12px] bg-slate-700 text-white py-1 px-2 rounded-lg">{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
+											<span className="text-[12px] bg-slate-700 text-white py-1 px-2 rounded-lg">{player.name}: {player.score} - {player.getPotentialGameEndDamage(lightCards, darkCards)} = {player.score - player.getPotentialGameEndDamage(lightCards, darkCards)}</span>
 										</div>
 									)}
 
@@ -624,7 +681,7 @@ function BattleCards() {
 															title={card.battleValue}
 															isDark={card.isDark()}
 															color={card.color}>
-															{card.getText()}
+															{card.getImage(darkCards, false)}
 														</PlayingCard>
 														<div className="text-white">DMG: {card.battleValue}</div>
 													</div>
@@ -637,7 +694,7 @@ function BattleCards() {
 
 						{/* Show Main Character */}
 						<div
-							className='w-[40vw] h-[40vw] fixed bottom-0 right-0 shadow-2xl shadow-white'
+							className='w-[40vw] h-[40vw] fixed bottom-0 right-0 drop-shadow-2xl shadow-white'
 							style={{
 								backgroundImage: `url(${playerIcons.get(players.sort((a, b) => a.getPotentialGameEndDamage(lightCards, darkCards) - b.getPotentialGameEndDamage(lightCards, darkCards))[0].name).banner
 									})`,
@@ -657,6 +714,7 @@ function BattleCards() {
 	return (
 		<div>
 			<DarkOverlay color="#00000077" />
+			<KeyboardAudio name={players[meIndex].name} roomId={gameoptions.roomId} turnbased={true} myturn={currentPlayerIndex == meIndex} />
 			<div style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }} className="w-screen h-screen flex flex-col">
 
 				{/* Game Info */}
@@ -665,7 +723,7 @@ function BattleCards() {
 						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-amber-400 text-white">Your Turn: <b>{playerTime}s</b></div>
 						:
 						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Wait Time: {playerTime}s</div>}
-					<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Game Time: <b>{gameTime}s</b></div>
+					<div style={{ display: ((gameoptions.gametime - gameTime <= 30) || (gameTime <= 60)) ? "block" : "none" }} className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Game Time: <b>{gameTime}s</b></div>
 				</div>
 
 
@@ -688,6 +746,7 @@ function BattleCards() {
 									>
 									</div>
 									<span style={{ background: player.playing ? "#ca8a04" : "#334155" }} className="text-[12px] text-white py-1 px-2 rounded-lg">{player.name}: ({player.score + "pts"})</span>
+									<span style={{ background: player.cards.size == 1 ? " #db2777" : "#2563eb" }} className="text-[12px] text-white py-1 px-2 rounded-lg">{player.cards.size} Cards</span>
 
 								</div>
 							)}
@@ -707,11 +766,11 @@ function BattleCards() {
 						isDark={!lightMode}
 						colorDemand={colorDemand}
 						color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
-						<span className="font-extrabold">{lightMode ? currentCard.getText() : currentCard.getText(darkCards)}</span>
+						<img className="w-20 h-20" src={`/cards/${lightMode ? currentCard.getImage(null, battleMode) : currentCard.getImage(darkCards, battleMode)}`} />
 					</PlayingCard>
 
 					{/* Cards to pick from */}
-					<div onClick={() => onPick()} title="Pick Card" className="relative text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
+					<div role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
 						🃏
 						{cardsToPick ? <span className="bg-slate-600 flex items-center justify-center text-center -top-5 -right-5 absolute shadow-3xl shadow-white border-2 border-white p-3 rounded-2xl text-white text-4xl"><b>{cardsToPick}</b><b>🃏</b></span> : null}
 					</div>
@@ -730,7 +789,7 @@ function BattleCards() {
 								colorDemand={false}
 								isDark={!lightMode}
 								color={card.color}>
-								<span className="font-extrabold">{card.getText()}</span>
+								<img className="w-10 h-10" src={`/cards/${lightMode ? card.getImage(null, battleMode) : card.getImage(null, battleMode)}`} />
 							</PlayingCard>
 						)}
 					</div>

@@ -12,16 +12,12 @@
         "name": "King Curt"
     },
     {
-        "id": "george",
-        "name": "Jana"
-    },
-    {
         "id": "jillian",
         "name": "Lil Jillz"
     },
     {
         "id": "martin",
-        "name": "Martin"
+        "name": "M2K"
     },
     {
         "id": "maureen",
@@ -40,19 +36,11 @@
         "name": "PVM"
     },
     {
-        "id": "ron",
-        "name": "Ronny"
-    },
-    {
         "id": "themba",
         "name": "Themba"
     },
     {
         "id": "trey",
         "name": "Terror T"
-    },
-    {
-        "id": "wilfred",
-        "name": "Masters"
     }
 ]
