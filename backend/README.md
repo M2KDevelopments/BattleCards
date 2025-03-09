@@ -6,8 +6,11 @@
 ![Static Badge](https://img.shields.io/badge/paypal-blue?style=plastic&logo=paypal&logoColor=blue&label=support&link=https%3A%2F%2Fpaypal.me%2Fm2kdevelopment)
 ![Static Badge](https://img.shields.io/badge/latest-blue?style=plastic&logo=react&logoColor=blue&label=reactjs&link=https%3A%2F%2Fgithub.com%2Fm2kdevelopments)
 ![Static Badge](https://img.shields.io/badge/latest-gold?style=plastic&logo=vite&logoColor=gold&label=vite)
+
+
 A Malawian card based game to frustrate the loser of the game.
-<img src="./client/public/battlecards-text.png" width="200">
+
+<img src="./client/public/battlecards-text.png" height="200">
 
 
 ## How to play the game
