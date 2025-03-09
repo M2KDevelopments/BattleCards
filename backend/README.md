@@ -7,7 +7,7 @@
 ![Static Badge](https://img.shields.io/badge/latest-blue?style=plastic&logo=react&logoColor=blue&label=reactjs&link=https%3A%2F%2Fgithub.com%2Fm2kdevelopments)
 ![Static Badge](https://img.shields.io/badge/latest-gold?style=plastic&logo=vite&logoColor=gold&label=vite)
 A Malawian card based game to frustrate the loser of the game.
-<img src="./react/public/battlecards-text.png" width="200">
+<img src="./client/public/battlecards-text.png" width="200">
 
 
 ## How to play the game
