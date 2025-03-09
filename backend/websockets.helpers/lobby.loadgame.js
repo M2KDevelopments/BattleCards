@@ -1,6 +1,53 @@
+import { Socket } from "socket.io"
+import specialCards from '../jsons/specialcards.json' assert { type: "json" };
+import colors from '../jsons/colors.json' assert { type: "json" };
 
-const specialCards = require('./jsons/specialcards.json');
-const colors = require('./jsons/colors.json')
+
+
+/**
+ * When the host clicks the ready button in the lobby
+ * @param {Socket} socket
+ * @returns 
+ */
+export function onLoadGame(socket) {
+    return (data, callback) => {
+
+        // get data coming from frontend
+        const { roomId, decks, area, npcs, players, playername, gametime, startpoints, anothergame } = data;
+
+
+        // send countdown messages to everyone
+        const maxCount = 10;
+        let counter = maxCount;
+        const timer = setInterval(() => {
+
+            // send to everyone
+            socket.to(roomId).emit("onloadgame", { countdown: counter });
+            socket.emit("onloadgame", { countdown: counter });
+            counter--; // minus 1 the counter
+
+            // start the game state
+            if (counter === parseInt(maxCount / 2)) {
+                // shuffle players
+                // shuffle cards
+                // distribute cards
+                // choose 1st card on the table
+                // send state of the game to all players.
+                const p = !anothergame ? [...players, { name: playername, socketId: socket.id }] : players
+                const settings = createGame({ decks, area, npcs, players: p, gametime, startpoints }, counter);
+
+                socket.to(roomId).emit("onloadgame", settings);
+                socket.emit("onloadgame", settings);
+            }
+            else if (counter < 0) clearInterval(timer);
+        }, 1000)
+
+
+        // signal to run the frontend callback
+        callback();
+    }
+}
+
 
 
 /**
@@ -8,7 +55,7 @@ const colors = require('./jsons/colors.json')
  * @param {*} gameoptions - options chosen by the host player 
  * @returns the game settings for a fresh game. Players, cards, area, etc
  */
-exports.createGame = function (gameoptions, counter) {
+function createGame(gameoptions, counter) {
 
 
     const { decks, area, npcs, players, gametime, startpoints } = gameoptions
