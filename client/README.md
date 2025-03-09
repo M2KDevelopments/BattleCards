@@ -10,8 +10,18 @@
 
 A Malawian card based game to frustrate the loser of the game.
 
-<img src="./client/public/battlecards-text.png" height="200">
+<img src="./public/battlecards-text.png" height="200">
 
+## Prerequisites
+Make sure you have Node JS installed
+```
+https://nodejs.org/en/download
+```
+
+## Start Client
+```
+npm run dev
+```
 
 ## How to play the game
 The point of the game is to make your opponent pick as many cards as possible before the game ends. Of it as you're playing Uno with a Twist that you want your opponent to suffer the most at the very end of the game. Which brings us to our first point;
