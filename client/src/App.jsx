@@ -9,7 +9,8 @@ import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
 import GameAudio from "./components/GameAudio";
 import { ToastContainer } from 'react-toastify';
-export const BACKENDURL = 'http://localhost:3002' //http://localhost:3002 : 'https://bc.m2kdevelopments.com'
+
+const BACKENDURL = import.meta.env.PROD == false ? 'http://localhost:3002' : 'https://bc.m2kdevelopments.com'
 // eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
 
@@ -84,7 +85,6 @@ function App() {
       setPage(PAGE_JOINGAME);
     }
   }, [])
-
 
   return (
     <ContextData.Provider value={{
