@@ -20,12 +20,12 @@ https://nodejs.org/en/download
 ```
 
 ## Start Client (Web)
-```
+```bash
 cd client && npm run dev
 ```
 
 ## Start Backend (Server)
-```
+```bash
 cd backend && npm run dev
 ```
 

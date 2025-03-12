@@ -23,12 +23,12 @@ https://nodejs.org/en/download
 There are two server configurations you can run. One built with Fastify Framework the other built with Express JS
 
 ### Express JS
-```
+```bash
 npm run start
 ```
 
 ### Fastify
-```
+```bash
 npm run fast
 ```
 

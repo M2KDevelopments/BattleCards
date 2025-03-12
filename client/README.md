@@ -19,7 +19,7 @@ https://nodejs.org/en/download
 ```
 
 ## Start Client
-```
+```bash
 npm run dev
 ```
 
