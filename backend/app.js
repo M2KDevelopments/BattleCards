@@ -17,7 +17,7 @@ const io = new Server(httpServer, {
 });
 
 // https://www.youtube.com/watch?v=ZKEqqIO7n-k&t=290s
-io.on("connection", onConnection);
+io.on("connection", (socket) => onConnection(socket, io));
 
 const port = process.env.PORT || 3002;
 httpServer.listen(port, () => console.log(`Running on ${port}`));

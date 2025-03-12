@@ -1,21 +1,24 @@
 import { useContext, useEffect, useMemo, useReducer, useState } from "react";
-import { ContextData, PAGE_GAME, PAGE_GAMEOPTIONS, socket } from "../App";
+import { ContextData, socket } from "../App";
 import Loading from "../components/Loading";
 import Player from "../classes/player";
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
 import { toast } from 'react-toastify';
 import KeyboardAudio from "../components/KeyboardAudio";
-
+import { useNavigate } from "react-router-dom";
+import swal from 'sweetalert';
 
 
 function GameLobby() {
 
     // get gameoptions that were saved from GameOptions Page in global variable
-    const { gameoptions, setPage, setGameOptions } = useContext(ContextData);
+    const { gameoptions, setGameOptions } = useContext(ContextData);
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
     const [countdown, setCountdown] = useState(10);
+    const navigate = useNavigate();
+
 
     // useReducer to be used for multiple or complicated useStates
     const reducer = (state, action) => {
@@ -46,7 +49,7 @@ function GameLobby() {
 
 
         if (action.chat) { // adding a new chat message
-            return { ...state, chats: [...state.chats, action.chat] };
+            return { ...state, chats: [action.chat, ...state.chats] };
         }
 
         if (action.player) { // adding a new player
@@ -74,15 +77,30 @@ function GameLobby() {
     }, [state.gameoptions.players])
 
 
+    // Update every player on the state of the game
     useEffect(() => {
-        if (gameoptions.host) socket.emit('gameoptions', {
-            startpoints: gameoptions.startpoints,
-            roomId: gameoptions.roomId,
-            gametime: gameoptions.gametime,
-            area: gameoptions.area,
-            players: [{ name: gameoptions.playername, roomId: gameoptions.roomId, socketId: socket.id }, ...state.players]
-        }, (options) => dispatch({ gameoptions: options }));
+        const onGameOptionFromHost = () => {
+            socket.emit('gameoptions', {
+                startpoints: gameoptions.startpoints,
+                roomId: gameoptions.roomId,
+                gametime: gameoptions.gametime,
+                area: gameoptions.area,
+                players: [{ name: gameoptions.playername, roomId: gameoptions.roomId, socketId: socket.id }, ...state.players]
+            }, (options) => dispatch({ gameoptions: options }));
+        }
+        socket.on('ongetgameoptions', onGameOptionFromHost);
+        if (gameoptions.host) onGameOptionFromHost()
+        else {
+            // Send a signal to get games options from host
+            console.log('Sending signal to get games options from host');
+            const roomId = window.location.href.replace("&cancel=true", '').replace(/.*join=/gmi, '');
+            socket.emit('get_game_options_from_host', roomId)
+        }
+        return () => socket.off('ongetgameoptions', onGameOptionFromHost);
     }, [gameoptions, state.players]);
+
+
+
 
     // Listen for web sockets emits from server
     useEffect(() => {
@@ -142,6 +160,9 @@ function GameLobby() {
         }
         socket.on('onloadgame', onLoadGame)
 
+        // when the host pressed back to game options
+        socket.on('oncancelgame', () => window.location.href = window.location.href.replace('lobby', 'join') + "&cancel=true")
+
 
         // on dismount remove listeners
         return () => {
@@ -158,18 +179,18 @@ function GameLobby() {
     // Waiting for game to start
     useEffect(() => {
         // start the game
-        if (countdown === 0) setPage(PAGE_GAME)
-    }, [countdown, setPage])
+        if (countdown <= 0) navigate('/game')
+    }, [countdown, navigate])
 
 
     const onCopyGameLink = async () => {
 
         // get base url
-        const url = window.location.href;
+        const url = window.location.href.replace("lobby", 'join');
         const roomId = gameoptions.roomId;
 
         // create join link - You can use its implementation in App.jsx
-        const link = `${url}#join${roomId}`; // https://battle.cards#join134234234
+        const link = `${url}?join=${roomId}`; // https://battle.cards/join?join=134234234
 
         // write to clipboard
         await window.navigator.clipboard.writeText(link);
@@ -210,6 +231,18 @@ function GameLobby() {
     }
 
 
+    const onCancelLobby = async () => {
+        const result = await swal({
+            title: "Cancel Game",
+            text: "Go back will kick everyone out of this lobby. Do you want do continue?",
+            icon: 'info',
+            buttons: ['No', 'Yes']
+        });
+        if (!result) return;
+        socket.emit('cancelgame', gameoptions.roomId, () => navigate('/options'));
+    }
+
+
     if (loading) return <Loading area={gameoptions.area || state.gameoptions.area} countDown={countdown} />
 
 
@@ -218,7 +251,7 @@ function GameLobby() {
             <DarkOverlay color="#00000077" />
             <KeyboardAudio name={gameoptions.playername} roomId={gameoptions.roomId} />
             <div className="text-white h-screen" style={{ backgroundImage: `url(areas/${gameoptions.area || state.gameoptions.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
-                {gameoptions.host ? <button className='relative text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={() => setPage(PAGE_GAMEOPTIONS)}>Back</button> : null}
+                {gameoptions.host ? <button className='relative text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCancelLobby}>Back</button> : null}
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative">Battle Cards Lobby <i>({state.gameoptions?.players?.length || state.players.length})</i></h1>
                 <h6 className="px-3">You: {gameoptions.playername}</h6>
 
@@ -235,7 +268,7 @@ function GameLobby() {
 
                     {/* Join Link */}
                     <div className="w-full flex z-10 relative px-8">
-                        <input className="w-full p-4 rounded-s-md text-white bg-[#efefef4d]" disabled={true} value={`${window.location.href}#join${gameoptions.roomId}`} />
+                        <input className="w-full p-4 rounded-s-md text-white bg-[#efefef4d]" disabled={true} value={`${window.location.href.replace("lobby", 'join')}?join=${gameoptions.roomId}`} />
                         <button className="w-48 bg-pink-700 p-4 rounded-e-sm text-white hover:bg-amber-700 duration-500 cursor-pointer" onClick={onCopyGameLink}>Copy Link</button>
                     </div>
 
@@ -262,10 +295,10 @@ function GameLobby() {
                         <b className="text-blue-200">Battle Card: </b>
                         <span>Game Time is <b className="text-orange-400">{gameoptions.gametime || state.gameoptions.gametime}s</b> and your starting points are <b className="text-orange-400">{gameoptions.startpoints || state.gameoptions.startpoints}pts</b></span>
                     </h6>
-                    {state.chats.reverse().map((chat, index) =>
+                    {state.chats.map((chat, index) =>
                         <h6 key={index} className="flex gap-2 items-center">
-                            <img src={playerIcons.get(chat.name).image} alt={chat.name} className="w-8 h-8 rounded-full" />
-                            <b style={{ color: playerIcons.get(chat.name).color }} className="text-pink-200">{chat.name}: </b>
+                            <img src={playerIcons.get(chat.name)?.image || ""} alt={chat.name} className="w-8 h-8 rounded-full" />
+                            <b style={{ color: playerIcons.get(chat.name)?.color || "" }} className="text-pink-200">{chat.name}: </b>
                             <span>{chat.message}</span>
                         </h6>)}
                 </div>

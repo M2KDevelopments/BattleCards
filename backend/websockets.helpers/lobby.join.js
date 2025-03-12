@@ -1,6 +1,5 @@
 import { Socket } from "socket.io"
 
-
 /**
  * When a socket joins room 
  * @param {Socket} socket

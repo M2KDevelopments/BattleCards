@@ -6,11 +6,11 @@ import PlayingCard from '../components/PlayingCard';
 import Player from "../classes/player";
 import Loading from "../components/Loading";
 import COLOURS from "../jsons/colors.json";
-import { toast } from 'react-toastify';
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
 import Confetti from 'react-confetti'
 import KeyboardAudio from "../components/KeyboardAudio";
+import { toast } from 'react-toastify';
 
 // the number seconds a player has to make a play.
 const PLAYER_PLAY_TIME = 15;

@@ -9,21 +9,27 @@ import { onStartTimer } from "./websockets.helpers/game.time.start.js"
 import { onPlayerTime } from "./websockets.helpers/game.time.player.js"
 import { onPickCard } from "./websockets.helpers/player.pickcard.js"
 import { onPlayCard } from "./websockets.helpers/player.playcard.js"
-
+import { onGameOptionsFromHost } from "./websockets.helpers/lobby.getgameoptions.js"
+import { Server } from "socket.io"
+import { onGetRooms } from "./websockets.helpers/join.rooms.js"
 /**
  * On connection handle for Battle Cards when a connection is made.
  * @param {Socket} socket
+ * @param {Server} io
  */
-export function onConnection(socket) {
+export function onConnection(socket, io) {
 
   // Log the connection
   console.log("Battle Cards Connection", socket.id);
 
 
+  socket.on('rooms', onGetRooms(socket, io))
+
 
   /***********************************
    * Lobby Actions
    ************************************/
+
 
   // Send message to Front End - socket.io callback will trigger the callback on the frontend
   socket.on("chat", onChat(socket));
@@ -36,6 +42,12 @@ export function onConnection(socket) {
 
   // Update everyone with game options in the room
   socket.on('gameoptions', onGameOptions(socket));
+
+  // Get Game Options from host
+  socket.on('get_game_options_from_host', onGameOptionsFromHost(socket));
+
+  // When host cancels the lobby
+  socket.on('cancelgame', (roomId, callback) => { callback(); socket.to(roomId).emit("oncancelgame", {}); });
 
   // when player clicks the ready button
   socket.on('ready', onReady(socket));

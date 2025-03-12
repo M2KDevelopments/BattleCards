@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react"
+import { createContext, useState } from "react"
 import MainMenu from "./views/MainMenu";
 import BattleCards from "./views/BattleCards";
 import GameOptions from "./views/GameOptions";
@@ -9,8 +9,11 @@ import GameJoin from "./views/GameJoin";
 import Player from "./classes/player";
 import GameAudio from "./components/GameAudio";
 import { ToastContainer } from 'react-toastify';
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AvailableGames from "./views/AvailableGames";
 const BACKENDURL = import.meta.env.PROD == false ? 'http://localhost:3002' : 'https://bc.m2kdevelopments.com'
+
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const socket = io(BACKENDURL)// connect to websocket server
 
@@ -26,8 +29,6 @@ export const PAGE_MENU = 0,
 
 
 export const ContextData = createContext({
-  page: PAGE_MENU,
-  setPage: (page) => page,
 
   // used in Settings page
   settings: {},
@@ -55,9 +56,7 @@ export const ContextData = createContext({
 
 function App() {
 
-  const [page, setPage] = useState(PAGE_MENU)
   const [settings, setSettings] = useState({})
-  const [joinRoomId, setJoinRoomId] = useState("");
   const [gameoptions, setGameOptions] = useState({
     playername: "",
     area: "",
@@ -75,32 +74,24 @@ function App() {
   });
 
 
-
-  // check if the url as a socket room id
-  useEffect(() => {
-    const url = window.location.href;
-    if (url.includes("#join")) {
-      const roomId = url.replace(/.*#join/gmi, '');
-      setJoinRoomId(roomId);
-      setPage(PAGE_JOINGAME);
-    }
-  }, [])
-
   return (
-    <ContextData.Provider value={{
-      page, setPage,
-      settings, setSettings,
-      gameoptions, setGameOptions
-    }}>
+    <ContextData.Provider value={{ settings, setSettings, gameoptions, setGameOptions }}>
       <main className="w-screen h-screen">
         <GameAudio />
-        {/* Show the correct page */}
-        {page === PAGE_MENU && <MainMenu />}
-        {page === PAGE_TUTORIAL && <Tutorial />}
-        {page === PAGE_GAMEOPTIONS && <GameOptions />}
-        {page === PAGE_GAMELOBBY && <GameLobby />}
-        {page === PAGE_JOINGAME && <GameJoin joinRoomId={joinRoomId} />}
-        {page === PAGE_GAME && <BattleCards />}
+
+        <Router>
+
+          <Routes>
+            <Route index path="/" element={<MainMenu />} />
+            <Route path="/tutorial" element={<Tutorial />} />
+            <Route path="/options" element={<GameOptions />} />
+            <Route path="/available" element={<AvailableGames />} />
+            <Route path="/join" element={<GameJoin />} />
+            <Route path="/lobby" element={<GameLobby />} />
+            <Route path="/game" element={<BattleCards />} />
+          </Routes>
+
+        </Router>
         <ToastContainer />
       </main>
     </ContextData.Provider>

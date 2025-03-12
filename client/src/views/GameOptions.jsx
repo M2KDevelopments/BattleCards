@@ -2,21 +2,23 @@
 import { useContext, useMemo, useState } from 'react';
 import AREAS from '../jsons/areas.json';
 import CHARACTERS from '../jsons/characters.json';
-import { ContextData, PAGE_GAMELOBBY, socket } from '../App';
+import { ContextData, socket } from '../App';
 import DarkOverlay from '../components/DarkOverlay';
 import swal from 'sweetalert';
 import KeyboardAudio from '../components/KeyboardAudio';
+import { useNavigate } from 'react-router-dom';
 
 
 const numberOfDecks = 8;
 
 export default function GameOptions() {
 
-  const { setPage, gameoptions, setGameOptions } = useContext(ContextData); // page and gameoptions
+  const { gameoptions, setGameOptions } = useContext(ContextData); // page and gameoptions
   const [playername, setPlayername] = useState(CHARACTERS[0].name);
   const [area, setArea] = useState(AREAS[0]);
   const [gameTime, setGameTime] = useState(gameoptions.gametime);
   const [score, setScore] = useState(gameoptions.startpoints)
+  const navigate = useNavigate();
 
   const avatar = useMemo(() => {
     return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
@@ -30,7 +32,7 @@ export default function GameOptions() {
       area: area,
       npcs: [],//npcPlayers,
       decks: numberOfDecks,
-      roomId: "room" + socket.id,
+      roomId: "room" + socket.id + `__${playername.replace(/\s/gmi, '--')}`,
       host: true,
       gametime: gameTime,
       startpoints: score
@@ -43,7 +45,7 @@ export default function GameOptions() {
     socket.emit('join', { name: playername, roomId: gamesettings.roomId }, () => {
       console.log(`Host has joined the room`);
       setGameOptions(gamesettings);
-      setPage(PAGE_GAMELOBBY);
+      navigate('/lobby')
     });
   }
 
