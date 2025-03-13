@@ -42,7 +42,7 @@ export default function GameOptions() {
     if (playername.trim() == '') return alert("Please enter a name");
 
     // Host joins the game room as player
-    socket.emit('join', { name: playername, roomId: gamesettings.roomId }, () => {
+    socket.emit('join', { name: playername, roomId: gamesettings.roomId, host: true, gameoptions: { ...gamesettings, host: undefined } }, () => {
       console.log(`Host has joined the room`);
       setGameOptions(gamesettings);
       navigate('/lobby')

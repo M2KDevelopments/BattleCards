@@ -15,7 +15,7 @@ fastify.register(FastifySocketIO, {
 });
 
 fastify.ready().then(() => {
-    fastify.log.info("Server is Ready");
+    fastify.log.info((`🔥🔥🔥 Battle Cards Server 🃏 Running on PORT -- ${port}`));
     fastify.io.on('connection', onConnection)
 })
 

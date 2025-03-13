@@ -79,27 +79,15 @@ function GameLobby() {
 
     // Update every player on the state of the game
     useEffect(() => {
-        const onGameOptionFromHost = () => {
-            socket.emit('gameoptions', {
-                startpoints: gameoptions.startpoints,
-                roomId: gameoptions.roomId,
-                gametime: gameoptions.gametime,
-                area: gameoptions.area,
-                players: [{ name: gameoptions.playername, roomId: gameoptions.roomId, socketId: socket.id }, ...state.players]
-            }, (options) => dispatch({ gameoptions: options }));
-        }
-        socket.on('ongetgameoptions', onGameOptionFromHost);
-        if (gameoptions.host) onGameOptionFromHost()
-        else {
-            // Send a signal to get games options from host
-            console.log('Sending signal to get games options from host');
-            const roomId = window.location.href.replace("&cancel=true", '').replace(/.*join=/gmi, '');
-            socket.emit('get_game_options_from_host', roomId)
-        }
-        return () => socket.off('ongetgameoptions', onGameOptionFromHost);
-    }, [gameoptions, state.players]);
+        // Initial Load
+        const roomId = window.location.href.replace("&cancel=true", '').replace(/.*join=/gmi, '');
+        const onGameOption = () => socket.emit('gameoptions', gameoptions.roomId || roomId, (gameoptions) => dispatch({ gameoptions }));
+        onGameOption()
 
-
+        // when player disconnects from server
+        socket.on('ondisconnected', onGameOption)
+        return () => socket.off('ondisconnected', onGameOption)
+    }, [gameoptions.host, gameoptions.roomId]);
 
 
     // Listen for web sockets emits from server
@@ -324,8 +312,8 @@ function GameLobby() {
                             style={{ background: (state.players.filter(p => !p.ready).length || !ready) ? "#831843" : "#be185d" }}
                             className="bg-pink-700 p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600"
                             // check if all the players are ready include you
-                            disabled={state.players.filter(p => !p.ready).length || !ready}
-                            onClick={onStart}>{(state.players.filter(p => !p.ready).length || !ready) ? "Waiting for Ready Players..." : "Start Game"}</button>
+                            disabled={!ready}
+                            onClick={onStart}>{(!state.players.filter(p => !p.ready).length || ready) ? "Start Game" : "Waiting for Ready Players..."}</button>
                         : null}
                 </div>
             </div>

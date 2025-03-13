@@ -2,16 +2,19 @@ import { Socket } from "socket.io"
 import { onChat } from "./websockets.helpers/lobby.chat.js"
 import { onDisconnect } from "./websockets.helpers/disconnect.js"
 import { onJoin } from "./websockets.helpers/lobby.join.js"
-import { onGameOptions } from "./websockets.helpers/gameoptions.js"
+import { onGameOptions } from "./websockets.helpers/lobby.gameoptions.js"
 import { onReady } from "./websockets.helpers/lobby.ready.js"
 import { onLoadGame } from "./websockets.helpers/lobby.loadgame.js"
 import { onStartTimer } from "./websockets.helpers/game.time.start.js"
 import { onPlayerTime } from "./websockets.helpers/game.time.player.js"
 import { onPickCard } from "./websockets.helpers/player.pickcard.js"
 import { onPlayCard } from "./websockets.helpers/player.playcard.js"
-import { onGameOptionsFromHost } from "./websockets.helpers/lobby.getgameoptions.js"
 import { Server } from "socket.io"
-import { onGetRooms } from "./websockets.helpers/join.rooms.js"
+import { onGetRooms } from "./websockets.helpers/join.rooms.js";
+
+const RoomMap = new Map();
+const GameMap = new Map();
+
 /**
  * On connection handle for Battle Cards when a connection is made.
  * @param {Socket} socket
@@ -35,16 +38,13 @@ export function onConnection(socket, io) {
   socket.on("chat", onChat(socket));
 
   // On socket disconnection
-  socket.on("disconnect", onDisconnect(socket));
+  socket.on("disconnect", onDisconnect(socket, RoomMap, GameMap));
 
-  // socket should join room data 
-  socket.on('join', onJoin(socket));
+  // socket should join room data
+  socket.on('join', onJoin(socket, RoomMap, GameMap));
 
   // Update everyone with game options in the room
-  socket.on('gameoptions', onGameOptions(socket));
-
-  // Get Game Options from host
-  socket.on('get_game_options_from_host', onGameOptionsFromHost(socket));
+  socket.on('gameoptions', onGameOptions(socket, RoomMap, GameMap));
 
   // When host cancels the lobby
   socket.on('cancelgame', (roomId, callback) => { callback(); socket.to(roomId).emit("oncancelgame", {}); });

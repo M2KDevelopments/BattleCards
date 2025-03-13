@@ -20,4 +20,4 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => onConnection(socket, io));
 
 const port = process.env.PORT || 3002;
-httpServer.listen(port, () => console.log(`Running on ${port}`));
+httpServer.listen(port, () => console.log(`🔥🔥🔥 Battle Cards Server 🃏 Running on PORT -- ${port}`));
