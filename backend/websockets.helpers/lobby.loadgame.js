@@ -1,6 +1,6 @@
 import { Socket } from "socket.io"
-import specialCards from '../jsons/specialcards.json' assert { type: "json" };
-import colors from '../jsons/colors.json' assert { type: "json" };
+import specialCards from '../jsons/specialcards.json' with  { type: "json" };
+import colors from '../jsons/colors.json' with  { type: "json" };
 
 
 
