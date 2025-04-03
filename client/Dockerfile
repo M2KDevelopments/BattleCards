@@ -1,7 +1,7 @@
 FROM node:22
 
 # Working directory
-WORKDIR ./
+WORKDIR /
 
 # Copy package.json
 COPY package*.json ./
@@ -11,9 +11,6 @@ RUN npm install
 
 # Copy everything
 COPY . .
-
-# POST ENV variables
-ENV PORT=4173
 
 # Expose PORT
 EXPOSE 4173

@@ -1,7 +1,7 @@
 FROM node:22
 
 # Working directory
-WORKDIR ./
+WORKDIR /
 
 # Copy package.json
 COPY package*.json ./
