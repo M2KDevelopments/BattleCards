@@ -14,7 +14,7 @@ A Malawian card based game to frustrate the loser of the game.
 
 
 ## Prerequisites
-Make sure you have Node JS installed
+Make sure you have Node JS version >=20 installed
 ```
 https://nodejs.org/en/download
 ```

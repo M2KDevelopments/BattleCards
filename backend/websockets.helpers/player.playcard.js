@@ -60,9 +60,15 @@ export function onPlayCard(socket) {
                 // skip to that player
                 if (clockwise) nextPlayer = (+playerIndex + card.value) % playerCount;
                 else {
-                    if (playerCount == 2 && card.value % 2 == 0) nextPlayer = currentPlayer;// if there are only two players
-                    else if (playerIndex - card.value < 0) nextPlayer = playerCount - (playerIndex - card.value);
-                    else nextPlayer -= card.value;
+                    if ((playerCount == 2) && (card.value % 2 == 0)) nextPlayer = currentPlayer;// if there are only two players
+                    else if (playerIndex == card.value) nextPlayer = 0; // first player
+                    else if (card.value % playerCount == 0) nextPlayer = currentPlayer; //same player
+                    else if ((playerIndex - card.value) < 0) {
+                        const positionsToMove = (card.value % playerCount)
+                        if (positionsToMove > playerIndex) nextPlayer = playerCount - (positionsToMove - playerIndex);
+                        else nextPlayer = playerIndex - positionsToMove;
+                    }
+                    else nextPlayer = playerIndex - card.value;
                 }
             }
         }

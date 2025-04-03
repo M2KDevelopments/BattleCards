@@ -12,6 +12,7 @@ import { onPlayCard } from "./websockets.helpers/player.playcard.js"
 import { Server } from "socket.io"
 import { onGetRooms } from "./websockets.helpers/join.rooms.js";
 
+// Map are passed by reference in javascript.
 const RoomMap = new Map();
 const GameMap = new Map();
 
@@ -67,8 +68,8 @@ export function onConnection(socket, io) {
   // when the game timer starts
   socket.on('starttimer', onStartTimer(socket));
 
-  // get the time of the current player
-  socket.on('playertime', onPlayerTime(socket));
+  // start the current player's timer
+  socket.on('startplayertime', onPlayerTime(socket));
 
 
 

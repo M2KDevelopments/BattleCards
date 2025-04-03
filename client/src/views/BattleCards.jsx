@@ -95,28 +95,28 @@ function BattleCards() {
 	}, [gameoptions]);
 
 
+	// start the current players time from the backend
+	useEffect(() => {
+		const playerCount = gameoptions.game.players.length;
+		const index = currentPlayerIndex;
+		const room = gameoptions.roomId;
+		if (!gameOver) socket.emit('startplayertime', {
+			roomId: room,
+			playerTimer: PLAYER_PLAY_TIME,
+			playerIndex: index,
+			playerCount,
+			clockwise,
+			battleMode,
+			lightMode,
+			cardsToPick,
+			pickUntil,
+			cardIndexOnTable,
+		});
+	}, [currentPlayerIndex, cardIndexOnTable, gameoptions.roomId, gameoptions.game.players, battleMode, clockwise, lightMode, pickUntil, gameOver, cardsToPick])
+
+
 	// listen for websocket
 	useEffect(() => {
-
-
-		// decrements playerTimer
-		const t = setInterval(() => {
-			const playerCount = gameoptions.game.players.length;
-			const index = currentPlayerIndex;
-			const room = gameoptions.roomId;
-			if (!gameOver) socket.emit('playertime', {
-				roomId: room,
-				playerTimer: playerTime,
-				playerIndex: index,
-				playerCount,
-				clockwise,
-				battleMode,
-				lightMode,
-				cardsToPick,
-				pickUntil
-			});
-		}, 1000);
-
 
 		// game timer
 		const onTimer = (time, gameover) => {
@@ -366,7 +366,6 @@ function BattleCards() {
 			socket.off('ongameover', onGameOver);
 			socket.off('onsound', onSound);
 			socket.off('onchat', onChat);
-			clearInterval(t)
 		}
 	}, [cardIndexOnTable, lightCards, darkCards, players, cardsOnTable,
 		playerTime, currentPlayerIndex, gameoptions, gameOver, clockwise,
