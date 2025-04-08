@@ -107,7 +107,7 @@ function BattleCards() {
 			playerCount,
 			clockwise,
 			battleMode,
-			lightMode,
+			lightMode, 
 			cardsToPick,
 			pickUntil,
 			cardIndexOnTable,

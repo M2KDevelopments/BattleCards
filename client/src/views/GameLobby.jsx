@@ -4,7 +4,7 @@ import Loading from "../components/Loading";
 import Player from "../classes/player";
 import DarkOverlay from "../components/DarkOverlay";
 import CHARACTERS from '../jsons/characters.json';
-import { toast } from 'react-toastify';
+// import { toast } from 'react-toastify';
 import KeyboardAudio from "../components/KeyboardAudio";
 import { useNavigate } from "react-router-dom";
 import swal from 'sweetalert';
@@ -171,22 +171,22 @@ function GameLobby() {
     }, [countdown, navigate])
 
 
-    const onCopyGameLink = async () => {
+    // const onCopyGameLink = async () => {
 
-        // get base url
-        const url = window.location.href.replace("lobby", 'join');
-        const roomId = gameoptions.roomId;
+    //     // get base url
+    //     const url = window.location.href.replace("lobby", 'join');
+    //     const roomId = gameoptions.roomId;
 
-        // create join link - You can use its implementation in App.jsx
-        const link = `${url}?join=${roomId}`; // https://battle.cards/join?join=134234234
+    //     // create join link - You can use its implementation in App.jsx
+    //     const link = `${url}?join=${roomId}`; // https://battle.cards/join?join=134234234
 
-        // write to clipboard
-        await window.navigator.clipboard.writeText(link);
+    //     // write to clipboard
+    //     await window.navigator.clipboard.writeText(link);
 
-        // alert new that link was copied
-        // alert(link);
-        toast('Join link has been copied to clipboard')
-    }
+    //     // alert new that link was copied
+    //     // alert(link);
+    //     toast('Join link has been copied to clipboard')
+    // }
 
 
     const onSendMessageToChat = (e) => {
@@ -244,24 +244,19 @@ function GameLobby() {
                 <h6 className="px-3">You: {gameoptions.playername}</h6>
 
                 {/* Game Options */}
-                <div className="flex gap-3 py-1 px-8">
-                    {/* <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Game Time: <span>{gameoptions.gametime || state.gameoptions.gametime}</span>s</div>
-                    <div className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-600 duration-150 text-white'>Start Points: <span>{gameoptions.startpoints || state.gameoptions.startpoints}</span></div> */}
+                {/* <div className="flex gap-3 py-1 px-8">
                     {!gameoptions.host ? <button className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCopyGameLink}>Copy Link</button> : null}
-                </div>
+                </div> */}
 
 
                 {/* Show if the admin/host  */}
-                {gameoptions.host ? <div>
-
-                    {/* Join Link */}
+                {/* Join Link */}
+                {/* {gameoptions.host ? <div>
                     <div className="w-full flex z-10 relative px-8">
                         <input className="w-full p-4 rounded-s-md text-white bg-[#efefef4d]" disabled={true} value={`${window.location.href.replace("lobby", 'join')}?join=${gameoptions.roomId}`} />
                         <button className="w-48 bg-pink-700 p-4 rounded-e-sm text-white hover:bg-amber-700 duration-500 cursor-pointer" onClick={onCopyGameLink}>Copy Link</button>
                     </div>
-
-                </div> : null}
-
+                </div> : null} */}
 
                 {/* Player Icons */}
                 <div className="relative z-10 py-2 px-8 flex overflow-x-scroll tablet:w-[600px] laptop:w-[1000px] desktop:w-[1280px]">

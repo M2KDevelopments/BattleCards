@@ -19,11 +19,15 @@ export function onPlayerTime(socket) {
     const gamedata = playerTimerMap.get(roomId)
     if (gamedata && (gamedata.playerIndex == playerIndex) && (cardIndexOnTable == gamedata.cardIndexOnTable)) return
 
-    // send to everyone
-    let counter = playerTimer;
+    // remove current because it send to change
+    else if(gamedata && gamedata.timer != undefined) clearInterval(gamedata.timer);
 
+    // Counter
+    let counter = playerTimer;
+    
+    // send to everyone
     const timer = setInterval(() => {
-      counter--;// decrement time
+      counter--; // decrement time
       const currentPlayer = playerIndex;
       let nextPlayer = (+playerIndex + 1) % playerCount;
       if (!clockwise) {
