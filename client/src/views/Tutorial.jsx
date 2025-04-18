@@ -1,16 +1,19 @@
 import DarkOverlay from "../components/DarkOverlay";
 import PlayingCard from "../components/PlayingCard";
 import { useNavigate } from "react-router-dom";
+import useWindowSize from "../hooks/useWindowSize";
 
 
 function Tutorial() {
-     
+
     const navigate = useNavigate()
+    const isDesktop = useWindowSize();
+
 
     return (
-        <div style={{ backgroundImage: `url('/battlecards.jpg')`, backgroundSize: '100%', overflow: 'hidden' }} className="h-screen flex flex-col gap-4 justify-center items-center align-middle m-auto">
+        <div style={{ backgroundImage: isDesktop ? `url('/battlecards.jpg')` : `url('/battlecards_phone.jpg')`, backgroundSize: '100%', overflow: 'hidden' }} className="h-screen flex flex-col gap-4 justify-center items-center align-middle m-auto">
             <DarkOverlay />
-            <button className='z-10 my-4 text-3xl rounded-md mobile:px-8 phone:px-8 tablet:px-16 laptop:px-20 py-2 border-2 border-purple-300 bg-pink-700 hover:bg-pink-900 duration-200 text-white' onClick={() => navigate('/')}>Back To Main Menu</button>
+            <button className='z-10 my-4 text-xl rounded-3xl mobile:px-8 phone:px-8 tablet:px-16 laptop:px-20 py-2 border-2 border-purple-300 bg-pink-700 hover:bg-pink-900 duration-200 text-white' onClick={() => navigate('/')}>Back To Main Menu</button>
             <div className="text-white relative z-10 overflow-y-scroll px-6">
                 <h1 className="mobile:text-4xl phone:text-4xl tablet:text-7xl">How to play the game</h1>
                 <p className="mobile:text-lg phone:text-lg tablet:text-2xl mb-10">The point of the game is to make your opponent pick as many cards as possible before the game ends. Of it as you&apos;re playing Uno with a Twist that you want your opponent to suffer the most at the very end of the game. Which brings us to our first point; </p>

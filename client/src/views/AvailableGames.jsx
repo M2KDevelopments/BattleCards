@@ -4,12 +4,14 @@ import CHARACTERS from '../jsons/characters.json';
 import DarkOverlay from "../components/DarkOverlay";
 import { useNavigate } from "react-router-dom";
 import swal from 'sweetalert';
+import useWindowSize from "../hooks/useWindowSize";
+
 
 function AvailableGames() {
 
     const [rooms, setRooms] = useState([]);
     const navigate = useNavigate();
-
+    const isDesktop = useWindowSize();
 
     const availableGames = useMemo(() => {
         return rooms.map(room => {
@@ -44,7 +46,7 @@ function AvailableGames() {
     return (
         <div>
             <DarkOverlay color="#00000077" />
-            <div className="h-screen flex flex-col items-center py-10 gap-2 overflow-hidden" style={{ backgroundImage: `url(join.png)`, backgroundSize: '100%', overflow: 'hidden' }}>
+            <div className="h-screen flex flex-col items-center py-10 gap-2 overflow-hidden" style={{ backgroundImage: isDesktop ? `url(join.jpg)` : `url(join_phone.jpg)`, backgroundSize: '100%', overflow: 'hidden' }}>
                 <img src="logo.png" width={100} alt="Battle Cards" />
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative text-white">Battle Cards Available Games</h1>
 

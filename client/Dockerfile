@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Expose PORT
-EXPOSE 4173
+EXPOSE 5173
 
 # Start the container
 CMD [ "npm", 'start' ]

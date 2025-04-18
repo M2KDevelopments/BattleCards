@@ -5,6 +5,7 @@ import CHARACTERS from '../jsons/characters.json';
 import KeyboardAudio from "../components/KeyboardAudio";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import useWindowSize from "../hooks/useWindowSize";
 
 
 // eslint-disable-next-line react/prop-types
@@ -14,7 +15,8 @@ function GameJoin() {
     const { setGameOptions } = useContext(ContextData);
     const [playername, setPlayername] = useState(CHARACTERS[0].name);
     const [joinRoomId, setJoinRoomId] = useState("");
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const isDesktop = useWindowSize()
     const avatar = useMemo(() => {
         return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
     }, [playername])
@@ -72,7 +74,7 @@ function GameJoin() {
         <div>
             <DarkOverlay color="#00000077" />
             <KeyboardAudio name={playername} />
-            <div className="h-screen flex flex-col items-center gap-2 overflow-hidden" style={{ backgroundImage: `url(join.png)`, backgroundSize: '100%', overflow: 'hidden' }}>
+            <div className="h-screen flex flex-col items-center gap-2 overflow-hidden" style={{ backgroundImage: isDesktop ? `url(join.jpg)` : `url(join_phone.jpg)`, backgroundSize: '100%', overflow: 'hidden' }}>
                 <img src="logo.png" width={100} alt="Battle Cards" />
                 <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative text-white">Battle Cards Join Room</h1>
 
