@@ -69,3 +69,10 @@ So there you have it those are the rules for battle cards I wish you well in you
 <a href="https://www.buymeacoffee.com/m2kdevelopments" target="_blank">
 <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
 </a>
+
+## Support (from Malawi or USA)
+<a href="https://give.paychangu.com/dc-RqLWVw" target="_blank">
+    <div style="padding:10px 10px; border-radius:30px; color:white;background:cyan; display:flex; gap:2px; width:300px; height:100px;">
+        Support via Paychangu
+    </div>
+</a>
