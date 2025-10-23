@@ -1,5 +1,5 @@
 
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo, useState, useEffect } from 'react';
 import AREAS from '../jsons/areas.json';
 import CHARACTERS from '../jsons/characters.json';
 import { ContextData, socket } from '../App';
@@ -18,7 +18,12 @@ export default function GameOptions() {
   const [area, setArea] = useState(AREAS[0]);
   const [gameTime, setGameTime] = useState(gameoptions.gametime);
   const [score, setScore] = useState(gameoptions.startpoints)
+  const [isLoaded, setIsLoaded] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setTimeout(() => setIsLoaded(true), 100);
+  }, []);
 
   const avatar = useMemo(() => {
     return `banners/${CHARACTERS.find(c => c.name == playername).id}.png`;
@@ -112,34 +117,93 @@ export default function GameOptions() {
 
   return (
     <>
-      <DarkOverlay color="#00000077" />
+      <DarkOverlay color="rgba(0, 0, 0, 0.65)" />
       <KeyboardAudio name={playername} />
-      <div className='z-20 overflow-hidden' style={{ backgroundImage: `url(areas/${area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
+      <div className='z-20 overflow-hidden relative' style={{ backgroundImage: `url(areas/${area}.jpeg)`, backgroundSize: 'cover', backgroundPosition: 'center', overflow: 'hidden' }}>
 
-        <section className='grid gap-2 mobile:grid-cols-1 phone:grid-cols-1 phone-xl:grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 m-6'>
-          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={onGameTime}>Game Time: <span>{gameTime}</span>s</button>
-          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-blue-600 hover:bg-blue-900 duration-150 text-white' onClick={onStartPoints}>Start Points: <span>{score}</span></button>
-          <button className='text-2xl z-10 px-6 py-2 rounded-md shadow-xl hover:shadow-2xl bg-pink-600 hover:bg-purple-900 duration-150 text-white' onClick={onPlay}>Create Game</button>
+        {/* Back Button */}
+        <button 
+          className={`group absolute top-6 left-6 z-30 text-lg rounded-2xl px-6 py-3 overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 flex items-center justify-center ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}
+          onClick={() => navigate('/')}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-pink-700 transition-transform duration-300 group-hover:scale-110"></div>
+          <div className="absolute inset-0 rounded-2xl border-2 border-purple-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.6)]"></div>
+          <span className="relative text-white font-bold tracking-wide drop-shadow-lg leading-none">← Back</span>
+        </button>
+
+        {/* Top Controls Section */}
+        <section className={`grid gap-3 mobile:grid-cols-1 phone:grid-cols-1 phone-xl:grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 m-6 mt-20 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+          {/* Game Time Button */}
+          <button 
+            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            onClick={onGameTime}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-700 transition-transform duration-300 group-hover:scale-110"></div>
+            <div className="absolute inset-0 rounded-2xl border-2 border-blue-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"></div>
+            <span className="relative text-white font-bold drop-shadow-lg">⏱️ Game Time: <span className="text-yellow-300">{gameTime}s</span></span>
+          </button>
+
+          {/* Start Points Button */}
+          <button 
+            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            onClick={onStartPoints}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-700 transition-transform duration-300 group-hover:scale-110"></div>
+            <div className="absolute inset-0 rounded-2xl border-2 border-purple-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(147,51,234,0.6)]"></div>
+            <span className="relative text-white font-bold drop-shadow-lg">💎 Start Points: <span className="text-yellow-300">{score}</span></span>
+          </button>
+
+          {/* Create Game Button */}
+          <button 
+            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            onClick={onPlay}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-pink-700 to-red-700 transition-transform duration-300 group-hover:scale-110"></div>
+            <div className="absolute inset-0 rounded-2xl border-2 border-pink-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.6)]"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <span className="relative text-white font-bold drop-shadow-lg">🎮 Create Game</span>
+          </button>
         </section>
 
         {/* Show Main Character */}
-        <div className='w-[40vw] h-[40vw] fixed bottom-0 right-0 drop-shadow-2xl shadow-white' style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}>
-
+        <div 
+          className={`w-[32vw] h-[32vw] fixed bottom-0 right-0 drop-shadow-2xl transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'}`}
+          style={{ backgroundImage: `url(${avatar})`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
+        >
         </div>
 
-        <section className='px-10 flex flex-col gap-3 justify-center mx-auto h-screen my-auto content-center items-center align-middle'>
-          <p className='z-20 tablet:text-6xl laptop:text-8xl text-white w-full text-left font-black'>{playername}</p>
-          <div className='grid mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12 gap-2 w-full'>
+        <section className='px-10 flex flex-col gap-4 justify-center mx-auto h-screen my-auto content-center items-center align-middle'>
+          {/* Player Name Display */}
+          <div className={`z-20 w-full transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className="bg-gradient-to-r from-purple-900/60 via-pink-900/60 to-purple-900/60 backdrop-blur-sm rounded-3xl p-6 border border-purple-500/40 shadow-2xl inline-block">
+              <p className='tablet:text-5xl laptop:text-7xl text-white font-black bg-gradient-to-r from-pink-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-2xl'>
+                {playername}
+              </p>
+            </div>
+          </div>
+
+          {/* Character Selection Grid */}
+          <div className={`grid mobile:grid-cols-2 phone:grid-cols-3 phone-xl:grid-cols-4 tablet:grid-cols-5 tablet-xl:grid-cols-6 laptop:grid-cols-9 desktop-lg:grid-cols-10 desktop-xl:grid-cols-12 gap-3 w-full transition-all duration-700 delay-400 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
             {
               CHARACTERS.map(chr =>
                 <div
                   key={chr.id}
                   title={chr.name}
                   role="button"
-                  style={{ borderWidth: chr.name === playername ? 4 : 2, backgroundImage: `url(avatars/${chr.id}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
-                  className='z-20 border-white w-28 h-28 bg-none rounded-lg hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
+                  style={{ 
+                    borderWidth: chr.name === playername ? 4 : 2, 
+                    backgroundImage: `url(avatars/${chr.id}.jpeg)`, 
+                    backgroundRepeat: 'no-repeat', 
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    overflow: 'hidden' 
+                  }}
+                  className={`z-20 w-28 h-28 rounded-xl duration-300 cursor-pointer transform transition-all hover:scale-110 hover:-translate-y-1 ${
+                    chr.name === playername 
+                      ? 'border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.8)] scale-105' 
+                      : 'border-white hover:border-pink-500 hover:shadow-[0_0_15px_rgba(236,72,153,0.5)]'
+                  }`}
                   onClick={() => onPlayerSelect(chr)}>
-
                 </div>
               )
             }
@@ -147,16 +211,31 @@ export default function GameOptions() {
 
         </section>
 
-        <section className='fixed bottom-3 flex gap-4 justify-center w-screen p-4 z-30'>
-          {AREAS.map(name =>
-            <div style={{ borderWidth: area === name ? 4 : 2, background: `url(areas/${name}.jpeg)`, backgroundImage: `url(areas/${name}.jpeg)`, backgroundRepeat: 'no-repeat', backgroundSize: '100%', overflow: 'hidden' }}
-              title={name}
-              role="button"
-              className='z-30 border-white w-24 h-24 rounded-xl bg-none hover:bg-[#000000a4] duration-300 hover:border-pink-700 cursor-pointer'
-              onClick={() => setArea(name)} key={name}>
-
-            </div>
-          )}
+        {/* Area Selection Section */}
+        <section className={`fixed bottom-3 flex gap-4 justify-center w-screen p-4 z-30 transition-all duration-700 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="bg-gradient-to-r from-purple-900/70 via-pink-900/70 to-purple-900/70 backdrop-blur-md rounded-3xl p-4 border border-purple-500/40 shadow-2xl flex gap-4">
+            {AREAS.map(name =>
+              <div 
+                style={{ 
+                  borderWidth: area === name ? 4 : 2, 
+                  backgroundImage: `url(areas/${name}.jpeg)`, 
+                  backgroundRepeat: 'no-repeat', 
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  overflow: 'hidden' 
+                }}
+                title={name}
+                role="button"
+                className={`z-30 w-24 h-24 rounded-2xl duration-300 cursor-pointer transform transition-all hover:scale-110 hover:-translate-y-2 ${
+                  area === name 
+                    ? 'border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.8)] scale-105' 
+                    : 'border-white hover:border-pink-500 hover:shadow-[0_0_15px_rgba(236,72,153,0.5)]'
+                }`}
+                onClick={() => setArea(name)} 
+                key={name}>
+              </div>
+            )}
+          </div>
         </section>
       </div>
     </>

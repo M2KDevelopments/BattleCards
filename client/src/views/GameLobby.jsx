@@ -236,45 +236,68 @@ function GameLobby() {
 
     return (
         <div>
-            <DarkOverlay color="#00000077" />
+            <DarkOverlay color="rgba(0, 0, 0, 0.65)" />
             <KeyboardAudio name={gameoptions.playername} roomId={gameoptions.roomId} />
-            <div className="text-white h-screen" style={{ backgroundImage: `url(areas/${gameoptions.area || state.gameoptions.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
-                {gameoptions.host ? <button className='relative text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCancelLobby}>Back</button> : null}
-                <h1 className="tablet:text-4xl laptop:text-6xl p-3 z-10 relative">Battle Cards Lobby <i>({state.gameoptions?.players?.length || state.players.length})</i></h1>
-                <h6 className="px-3">You: {gameoptions.playername}</h6>
+            <div className="text-white h-screen relative" style={{ backgroundImage: `url(areas/${gameoptions.area || state.gameoptions.area}.jpeg)`, backgroundSize: 'cover', backgroundPosition: 'center', overflow: 'hidden' }}>
+                
+                {/* Back Button - Only for Host */}
+                {gameoptions.host ? 
+                    <button 
+                        className='group absolute top-4 sm:top-6 left-2 sm:left-4 md:left-6 z-30 text-sm sm:text-base md:text-lg rounded-xl sm:rounded-2xl px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 flex items-center justify-center'
+                        onClick={onCancelLobby}
+                        aria-label="Back to game options"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-pink-700 transition-transform duration-300 group-hover:scale-110"></div>
+                        <div className="absolute inset-0 rounded-2xl border-2 border-purple-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.6)]"></div>
+                        <span className="relative text-white font-bold tracking-wide drop-shadow-lg leading-none text-sm sm:text-base">← Back</span>
+                    </button>
+                : null}
+
+                {/* Title Section */}
+                <div className="pt-16 sm:pt-20 px-4 sm:px-6 z-10 relative text-center sm:text-left">
+                    <div className="bg-gradient-to-r from-purple-900/60 via-pink-900/60 to-purple-900/60 backdrop-blur-sm rounded-3xl px-4 sm:px-8 py-3 sm:py-4 border border-purple-500/40 shadow-2xl inline-block max-w-full">
+                        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-pink-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-2xl whitespace-nowrap overflow-hidden text-ellipsis">
+                            Battle Cards <span className="hidden xs:inline">Lobby</span> 
+                            <span className="text-yellow-300">({state.gameoptions?.players?.length || state.players.length})</span>
+                        </h1>
+                    </div>
+                    <div className="mt-2 sm:mt-3 bg-purple-900/40 backdrop-blur-sm rounded-2xl px-4 sm:px-6 py-2 sm:py-3 border border-purple-500/30 shadow-lg inline-block">
+                        <h6 className="text-base sm:text-xl font-semibold">You: <span className="text-pink-300">{gameoptions.playername}</span></h6>
+                    </div>
+                </div>
 
                 {/* Game Options */}
                 {/* <div className="flex gap-3 py-1 px-8">
                     {!gameoptions.host ? <button className='text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-pink-700 text-white  hover:bg-amber-700 duration-500 cursor-pointer' onClick={onCopyGameLink}>Copy Link</button> : null}
                 </div> */}
 
-
-                {/* Show if the admin/host  */}
-                {/* Join Link */}
-                {/* {gameoptions.host ? <div>
-                    <div className="w-full flex z-10 relative px-8">
-                        <input className="w-full p-4 rounded-s-md text-white bg-[#efefef4d]" disabled={true} value={`${window.location.href.replace("lobby", 'join')}?join=${gameoptions.roomId}`} />
-                        <button className="w-48 bg-pink-700 p-4 rounded-e-sm text-white hover:bg-amber-700 duration-500 cursor-pointer" onClick={onCopyGameLink}>Copy Link</button>
-                    </div>
-                </div> : null} */}
-
                 {/* Player Icons */}
-                <div className="relative z-10 py-2 px-8 flex overflow-x-scroll tablet:w-[600px] laptop:w-[1000px] desktop:w-[1280px]">
+                <div className="relative z-10 py-3 sm:py-4 px-4 sm:px-8 w-full flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
                     {state.gameoptions.players.map(p =>
-                        <div key={playerIcons.get(p.name).id} className="relative">
-                            <img title={p.name} className="phone:w-10 phone:h-10 mobile:w-10 mobile:h-10 tablet:w-10 tablet:h-10 laptop:w-16 laptop:h-16 rounded-full shadow-lg" src={playerIcons.get(p.name).image} />
-                            {p.ready ?
-                                <span className="relative rounded-2xl bg-slate-800 text-white p-1 text-sm border-2 border-slate-700">Ready</span>
+                        <div key={playerIcons.get(p.name).id} className="relative flex flex-col items-center gap-2">
+                            <div className="relative">
+                                <img 
+                                    title={p.name} 
+                                    className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full shadow-2xl border-2 sm:border-4 border-white/80" 
+                                    src={playerIcons.get(p.name).image} 
+                                />
+                                {p.ready ?
+                                    <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white shadow-lg">
+                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                                        </svg>
+                                    </div>
                                 : null}
+                            </div>
+                            <span className="text-[10px] xs:text-xs font-semibold text-white bg-purple-900/60 px-1.5 xs:px-2 py-0.5 xs:py-1 rounded-full border border-purple-400/40 max-w-[80px] xs:max-w-[100px] truncate">{p.name}</span>
                         </div>
                     )}
-
                 </div>
 
                 {/* Show the chat message */}
-                <div className="mobile:h-[200px] mobile:max-h-[300px] phone:h-[200px] phone:max-h-[300px] phone-xl:h-[200px] phone-xl:max-h-[300px] tablet-xl:h-[300px] tablet:max-h-[400px] overflow-y-scroll bg-[#39393962] z-10 relative mx-8 flex flex-col gap-1 p-2">
-                    <h6 className="flex gap-2 items-center">
-                        <img src="icon.png" alt="battlecards" className="w-8 h-8 rounded-full" />
+                <div className="h-[180px] sm:h-[200px] md:h-[250px] overflow-y-auto bg-[#39393962] backdrop-blur-sm z-10 relative mx-4 sm:mx-6 md:mx-8 my-2 flex flex-col gap-1 p-3 sm:p-4 rounded-2xl border border-purple-500/30 shadow-xl">
+                    <h6 className="flex flex-wrap gap-1 sm:gap-2 items-center text-sm sm:text-base">
+                        <img src="icon.png" alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0" />
                         <b className="text-blue-200">Battle Card: </b>
                         <span>Game Time is <b className="text-orange-400">{gameoptions.gametime || state.gameoptions.gametime}s</b> and your starting points are <b className="text-orange-400">{gameoptions.startpoints || state.gameoptions.startpoints}pts</b></span>
                     </h6>
@@ -287,33 +310,73 @@ function GameLobby() {
                 </div>
 
                 {/* Submit a message to the lobby */}
-                <form onSubmit={onSendMessageToChat} className="w-full flex z-10 relative px-8 py-3">
-                    <input className="w-full p-4 rounded-s-md text-white bg-[#3b3b3b8b]" type="text" required name="chat" maxLength={300} placeholder="Enter your t̶o̶x̶i̶c̶  message here..." />
-                    <button className="bg-pink-900 p-2 rounded-e-md text-white hover:bg-purple-700 duration-500 cursor-pointer" type="submit">Send Message</button>
+                <form onSubmit={onSendMessageToChat} className="w-full flex z-10 relative px-4 sm:px-6 md:px-8 py-2 sm:py-3">
+                    <input 
+                        className="w-full p-2 sm:p-3 md:p-4 text-sm sm:text-base rounded-l-2xl text-white bg-[#3b3b3b8b] backdrop-blur-sm border-2 border-purple-500/30 focus:border-pink-500/50 focus:outline-none transition-all duration-300" 
+                        type="text" 
+                        required 
+                        name="chat" 
+                        maxLength={300} 
+                        placeholder="Enter your message here..." 
+                    />
+                    <button 
+                        className="group relative px-6 overflow-hidden rounded-r-2xl transform transition-all duration-300 hover:scale-105 active:scale-95" 
+                        type="submit"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-700 transition-transform duration-300 group-hover:scale-110"></div>
+                        <div className="absolute inset-0 border-2 border-pink-400/50 rounded-r-2xl group-hover:border-pink-400 transition-all duration-300"></div>
+                        <span className="relative text-white font-bold drop-shadow-lg">Send</span>
+                    </button>
                 </form>
 
-
                 {/* Start Buttons */}
-                <div className="flex gap-2 justify-center p-2 z-10 relative">
+                <div className="flex flex-wrap gap-2 sm:gap-3 justify-center p-2 sm:p-3 md:p-4 z-10 relative">
+                    {/* Ready Button */}
                     <button
-                        style={{ background: ready ? "#831843" : "#be185d" }}
-                        className="p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600" onClick={onReady}>
-                        {ready ? "Not Ready" : "Ready!"}
+                        className="group relative text-base sm:text-lg md:text-xl px-4 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-3 md:py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 min-w-[120px] sm:min-w-[140px] md:min-w-[150px]"
+                        onClick={onReady}
+                    >
+                        <div className={`absolute inset-0 transition-all duration-300 group-hover:scale-110 ${
+                            ready 
+                                ? 'bg-gradient-to-r from-red-700 to-red-900' 
+                                : 'bg-gradient-to-r from-green-600 to-emerald-700'
+                        }`}></div>
+                        <div className={`absolute inset-0 rounded-2xl border-2 opacity-50 group-hover:opacity-100 transition-all duration-300 ${
+                            ready 
+                                ? 'border-red-400 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.6)]' 
+                                : 'border-green-400 group-hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]'
+                        }`}></div>
+                        <span className="relative text-white font-bold drop-shadow-lg">
+                            {ready ? "✗ Not Ready" : "✓ Ready!"}
+                        </span>
                     </button>
 
                     {/* Only host can start the game. */}
                     {gameoptions.host ?
                         <button
-                            style={{ background: (state.players.filter(p => !p.ready).length || !ready) ? "#831843" : "#be185d" }}
-                            className="bg-pink-700 p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600"
-                            // check if all the players are ready include you
+                            className="group relative text-base sm:text-lg md:text-xl px-4 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-3 md:py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0 min-w-[140px] sm:min-w-[180px] md:min-w-[200px]"
                             disabled={!ready}
-                            onClick={onStart}>{(!state.players.filter(p => !p.ready).length || ready) ? "Start Game" : "Waiting for Ready Players..."}</button>
+                            onClick={onStart}
+                        >
+                            <div className={`absolute inset-0 transition-all duration-300 group-hover:scale-110 ${
+                                (state.players.filter(p => !p.ready).length || !ready) 
+                                    ? 'bg-gradient-to-r from-gray-600 to-gray-800' 
+                                    : 'bg-gradient-to-r from-pink-600 via-pink-700 to-red-700'
+                            }`}></div>
+                            <div className={`absolute inset-0 rounded-2xl border-2 opacity-50 group-hover:opacity-100 transition-all duration-300 ${
+                                (state.players.filter(p => !p.ready).length || !ready)
+                                    ? 'border-gray-400'
+                                    : 'border-pink-400 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.6)]'
+                            }`}></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            <span className="relative text-white font-bold drop-shadow-lg">
+                                {(!state.players.filter(p => !p.ready).length && ready) ? "🎮 Start Game" : "⏳ Waiting..."}
+                            </span>
+                        </button>
                         : null}
                 </div>
             </div>
         </div>
     )
 }
-
 export default GameLobby
