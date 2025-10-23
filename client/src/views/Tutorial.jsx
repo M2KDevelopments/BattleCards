@@ -15,19 +15,19 @@ function Tutorial() {
     }, []);
 
     return (
-        <div 
-            style={{ 
-                backgroundImage: isDesktop ? `url('/battlecards.jpg')` : `url('/battlecards_phone.jpg')`, 
+        <div
+            style={{
+                backgroundImage: isDesktop ? `url('/battlecards.jpg')` : `url('/battlecards_phone.jpg')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                overflow: 'hidden' 
-            }} 
+                overflow: 'hidden'
+            }}
             className="h-screen flex flex-col items-center relative"
         >
             <DarkOverlay color="rgba(0, 0, 0, 0.7)" />
-            
+
             {/* Back Button */}
-            <button 
+            <button
                 className={`group relative z-10 mt-6 text-xl rounded-2xl px-8 py-3 overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 flex items-center justify-center ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
                 onClick={() => navigate('/')}
             >
@@ -38,7 +38,7 @@ function Tutorial() {
 
             {/* Content Container */}
             <div className={`text-white relative z-10 overflow-y-scroll px-6 py-6 max-w-6xl w-full transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-                
+
                 {/* Header Section */}
                 <div className="mb-12 text-center">
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent drop-shadow-2xl">
@@ -48,6 +48,7 @@ function Tutorial() {
                         <p className="text-lg md:text-2xl leading-relaxed">
                             The point of the game is to make your opponent pick as many cards as possible before the game ends. Think of it as you&apos;re playing Uno with a twist - you want your opponent to suffer the most at the very end of the game. Which brings us to our first point:
                         </p>
+                        <audio src="/audio/tutorial1.mp3" controls />
                     </div>
                 </div>
 
@@ -60,6 +61,7 @@ function Tutorial() {
                         <p className="text-lg md:text-xl leading-relaxed">
                             There are three game modes in Battle Cards: <b className="text-pink-400">Light Mode</b>, <b className="text-purple-400">Dark Mode</b>, and <b className="text-red-400">Battle Mode</b>. Light mode is similar to the normal way of playing Uno. Dark mode is the same but the cards that you pick are much more intense. Battle mode is the key mode that the game was built on. This mode is entered when a card that is intended for someone to pick is thrown on the table. The key aspect of battle mode is to accumulate the number of cards to pick for someone to suffer. All other cards that are functional like reversing the flow of the game or skipping someone can be used in battle mode as defenses to avoid you picking. There are other special cards that are also used as defense, which is what we&apos;re going to get into next.
                         </p>
+                        <audio src="/audio/tutorial_modes.mp3" controls />
                     </div>
                 </div>
 
@@ -249,12 +251,14 @@ function Tutorial() {
                         <p className="text-lg md:text-xl leading-relaxed">
                             ⏱️ <b className="text-blue-400">Game Duration:</b> The average game is about 300 seconds (5 minutes). When the game begins, after 30 seconds the timer stops showing and will appear again when the game is left to its last minute. This is done so that players don&apos;t know the amount of time that has passed.
                         </p>
+                        <audio src="/audio/tutorial_time.mp3" controls />
                     </div>
 
                     <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
                         <p className="text-lg md:text-xl leading-relaxed">
                             💎 <b className="text-purple-400">Point System:</b> Each player starts with a designated amount of points (e.g., 1,000). When the game ends, these points are deducted based on the cards you have in hand. The points of each card are shown at the end of each game under the <b className="text-pink-400">Results</b> section. Picking cards are worth 10× their value, defensive cards used in battle mode are worth 15 points, and number cards are worth their face value. Ideally, you want to have as low a value as possible at the end of the game.
                         </p>
+                        <audio src="/audio/tutorial_points.mp3" controls />
                     </div>
 
                     <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
@@ -266,12 +270,14 @@ function Tutorial() {
                             <li>The timer runs out and you&apos;re not in battle mode</li>
                             <li>The timer runs out while in battle mode and the person picks</li>
                         </ul>
+                        <audio src="/audio/tutorial_gameover.mp3" controls />
                     </div>
 
                     <div className="bg-gradient-to-r from-green-900/30 to-teal-900/30 backdrop-blur-sm rounded-xl p-6 border border-green-500/20">
                         <p className="text-lg md:text-xl leading-relaxed">
                             🎤 <b className="text-green-400">Voice Lines:</b> The numpad keys are used to send voice lines during the game. You can only play these during your turn, and they&apos;re used to troll your opponents - so have fun with it! Each character has four voice lines.
                         </p>
+                        <audio src="/audio/tutorial_voice.mp3" controls />
                     </div>
                 </div>
 
@@ -279,7 +285,7 @@ function Tutorial() {
 
                 <div className="bg-gradient-to-r from-pink-900/40 to-purple-900/40 backdrop-blur-sm rounded-2xl p-8 border border-pink-500/30 shadow-2xl text-center">
                     <p className="text-xl md:text-2xl font-bold leading-relaxed">
-                        ⚔️ So there you have it - those are the rules for Battle Cards. <br/>
+                        ⚔️ So there you have it - those are the rules for Battle Cards. <br />
                         <span className="text-pink-400">I wish you well in your battle!</span> 🎮
                     </p>
                 </div>
