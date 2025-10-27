@@ -112,7 +112,7 @@ function AvailableGames() {
                                         {/* Player Name */}
                                         <div className="text-center">
                                             <p className="text-xl font-bold text-white drop-shadow-lg mb-1">{game.playername}</p>
-                                            <p className="text-sm text-pink-300 font-semibold">🎮 Host's Game</p>
+                                            <p className="text-sm text-pink-300 font-semibold">🎮 Host&apos;s Game</p>
                                         </div>
                                         
                                         {/* Join Badge */}

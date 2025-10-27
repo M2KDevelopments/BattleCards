@@ -107,7 +107,7 @@ function BattleCards() {
 			playerCount,
 			clockwise,
 			battleMode,
-			lightMode, 
+			lightMode,
 			cardsToPick,
 			pickUntil,
 			cardIndexOnTable,
@@ -673,21 +673,21 @@ function BattleCards() {
 	// On Game Over
 	if (gameOver) {
 		return (
-			<div className="w-screen h-screen flex flex-col" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
+			<div className="w-screen h-screen flex flex-col bg-gray-800" style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }}>
 				{countdown ? <Loading area={gameoptions.game.area} countDown={countdown} /> :
 
 					// Game Over Screen
 					<div className="h-full w-full">
-						<DarkOverlay color="#00000077" />
+						<DarkOverlay color="#011239d9" />
 						<KeyboardAudio name={players[meIndex].name} roomId={gameoptions.roomId} />
 						<div className="z-20 relative w-full mx-auto"><Confetti width={800} height={600} /></div>
 						<div className="flex flex-col gap-3 items-center p-4" >
 							<h1 className="phone:text-3xl tablet:text-4xl laptop:text-7xl text-white z-10 relative">Game Over</h1>
 							<div className="flex gap-2">
-								{gameoptions.host ? <button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
-								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_CHAT)}>Chat ({state.chats.length})</button>
-								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_STANDINGS)}>Standings</button>
-								<button className="bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 rounded-sm cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_RESULTS)}>Results</button>
+								{gameoptions.host ? <button className="roundded-3xl bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={onStartNewGame}>New Match</button> : null}
+								<button className="rounded-3xl bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_CHAT)}>Chat ({state.chats.length})</button>
+								<button className="rounded-3xl bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_STANDINGS)}>Standings</button>
+								<button className="rounded-3xl bg-pink-700 mobile:p-1 phone:p-1 tablet:p-4 cursor-pointer text-white hover:bg-amber-600 relative z-10" onClick={() => setGameOverMode(GAMEOVER_RESULTS)}>Results</button>
 							</div>
 
 
@@ -789,41 +789,38 @@ function BattleCards() {
 
 	return (
 		<div>
-			<DarkOverlay color="#00000077" />
+			<DarkOverlay color="#011239d9" />
 			<KeyboardAudio name={players[meIndex].name} roomId={gameoptions.roomId} turnbased={true} myturn={currentPlayerIndex == meIndex} />
-			<div style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }} className="w-screen h-screen flex flex-col">
+			<div style={{ backgroundImage: `url(areas/${gameoptions.game.area}.jpeg)`, backgroundSize: '100%', overflow: 'hidden' }} className="w-screen h-screen flex flex-col justify-center bg-gray-800">
 
 				{/* Game Info */}
 				<div className="flex items-center justify-end gap-4 pt-8">
 					{currentPlayerIndex == meIndex ?
-						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-amber-400 text-white">Your Turn: <b>{playerTime}s</b></div>
+						<div className="text-md z-10 px-6 py-2 rounded-3xl shadow-2xl hover:shadow-2xl bg-pink-600 text-white" title="Your Turn">⏰ <b>{playerTime}s</b></div>
 						:
-						<div className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Wait Time: {playerTime}s</div>}
-					<div style={{ display: ((gameoptions.gametime - gameTime <= 30) || (gameTime <= 60)) ? "block" : "none" }} className="text-md z-10 px-6 py-2 rounded-sm shadow-xl hover:shadow-2xl bg-blue-700 text-white">Game Time: <b>{gameTime}s</b></div>
+						<div className="text-md z-10 px-6 py-2 rounded-3xl shadow-2xl hover:shadow-2xl bg-blue-700 text-white" title="Wait Time">⏰ {playerTime}s</div>}
+					<div style={{ display: ((gameoptions.gametime - gameTime <= 30) || (gameTime <= 60)) ? "block" : "none" }} className="text-md z-10 px-6 py-2 rounded-3xl shadow-xl hover:shadow-2xl bg-blue-700 text-white">Game Time: <b>{gameTime}s</b></div>
 				</div>
 
 
 				{/* Players' Info */}
 				<section className="fixed top-0 left-0 w-screen z-10 text-white">
 					<div className="flex gap-2 p-3 items-center">
-						<span className="text-6xl">{clockwise ? "👉" : "👈"}</span>
-						{players
-							.map((player, index) => {
-								const image = playerIcons.get(player.name).image;
-								if (index == currentPlayerIndex) return { ...player, playing: true, me: meIndex == index, image }
-								else return { ...player, me: meIndex == index, image }
-							})
+						<span className="phone:text-2xl tablet:text-4xl">{clockwise ? "👉" : "👈"}</span>
+						{players.map((player, index) => {
+							const image = playerIcons.get(player.name).image;
+							if (index == currentPlayerIndex) return { ...player, playing: true, me: meIndex == index, image }
+							else return { ...player, me: meIndex == index, image }
+						})
 							.map((player) =>
-								<div className="flex flex-col items-center gap-2" key={player.id}>
+								<div className="relative flex flex-col items-center gap-2" key={player.id}>
 									<div
-										className="shadow p-2 rounded-full w-14 h-14 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
+										className="shadow p-2 rounded-full w-12 h-12 flex justify-center items-center hover:shadow-lg hover:shadow-slate-300 cursor-pointer duration-500"
 										style={{ border: player.playing ? "2px solid gold" : player.me ? "5px solid cyan" : undefined, backgroundImage: `url(${player.image})`, backgroundSize: '100%', overflow: 'hidden' }}
 										title={player.name + " (" + player.score + "pts)"}
 									>
 									</div>
-									<span style={{ background: player.playing ? "#ca8a04" : "#334155" }} className="text-[12px] text-white py-1 px-2 rounded-lg">{player.name}: ({player.score + "pts"})</span>
-									<span style={{ background: player.cards.size == 1 ? " #db2777" : "#2563eb" }} className="text-[12px] text-white py-1 px-2 rounded-lg">{player.cards.size} Cards</span>
-
+									<span style={{ background: player.cards.size == 1 ? " #db2777" : "black" }} className="text-[12px] text-white py-1 px-2 rounded-3xl absolute -top-3 -right-5 shadow-2xl">{player.cards.size} 🃏</span>
 								</div>
 							)}
 					</div>
@@ -834,11 +831,11 @@ function BattleCards() {
 
 
 				{/* Cards on the table */}
-				<div className="h-[80vh] flex gap-4 justify-center items-center align-middle">
+				<div className="h-4/6 flex gap-4 justify-center items-center align-middle">
 
 					{/* Cards thrown */}
 					<PlayingCard
-						sx={{ fontSize: 60, height: "33%", minWidth: 170 }}
+						sx={{ fontSize: 60, height: 200, minWidth: 170 }}
 						isDark={!lightMode}
 						colorDemand={colorDemand}
 						color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
@@ -846,7 +843,7 @@ function BattleCards() {
 					</PlayingCard>
 
 					{/* Cards to pick from */}
-					<div role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl h-1/3 min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
+					<div style={{ height: 200 }} role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
 						🃏
 						{cardsToPick ? <span className="bg-slate-600 flex items-center justify-center text-center -top-5 -right-5 absolute shadow-3xl shadow-white border-2 border-white p-3 rounded-2xl text-white text-4xl"><b>{cardsToPick}</b><b>🃏</b></span> : null}
 						{pickUntil.length ?
@@ -861,17 +858,20 @@ function BattleCards() {
 
 
 				{/* Cards in Hand */}
-				<div className="w-screen h-[12vh] max-h-[12vh] mb-8">
-					<div className="flex justify-center items-center gap-3 overflow-x-scroll w-[95vw]">
-						{cards.map(card =>
-							<PlayingCard
-								onPlay={() => onPlayCard(card)}
-								key={card.index}
-								colorDemand={false}
-								isDark={!lightMode}
-								color={card.color}>
-								<img className="w-10 h-10" src={`/cards/${lightMode ? card.getImage(null, battleMode) : card.getImage(null, battleMode)}`} />
-							</PlayingCard>
+				<div className="w-full phone:h-1/3 mb-6">
+					<div className="flex items-center gap-3 overflow-x-scroll w-full">
+						{cards.map((card, index) =>
+							<div key={card.index} className="relative">
+								<PlayingCard
+									sx={{ fontSize: 60, height: 80, minWidth: 60 }}
+									onPlay={() => onPlayCard(card)}
+									colorDemand={false}
+									isDark={!lightMode}
+									color={card.color}>
+									<img className="w-10 h-10" src={`/cards/${lightMode ? card.getImage(null, battleMode) : card.getImage(null, battleMode)}`} />
+								</PlayingCard>
+								<span className="bg-gray-700 w-8 h-8 text-white rounded-3xl border-white border-2 text-center flex justify-center items-center absolute bottom-2 right-0 shadow-2xl">{index + 1}</span>
+							</div>
 						)}
 					</div>
 				</div>

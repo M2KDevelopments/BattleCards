@@ -132,36 +132,36 @@ export default function GameOptions() {
         </button>
 
         {/* Top Controls Section */}
-        <section className={`grid gap-3 mobile:grid-cols-1 phone:grid-cols-1 phone-xl:grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 m-6 mt-20 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <section className={`grid gap-3 grid-cols-3 m-6 mt-20 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
           {/* Game Time Button */}
           <button 
-            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            className='group relative text-xl z-10 mobile:py-0 px-3 py-2 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
             onClick={onGameTime}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-700 transition-transform duration-300 group-hover:scale-110"></div>
             <div className="absolute inset-0 rounded-2xl border-2 border-blue-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"></div>
-            <span className="relative text-white font-bold drop-shadow-lg">⏱️ Game Time: <span className="text-yellow-300">{gameTime}s</span></span>
+            <span className="relative mobile:text-xs text-sm text-white font-bold drop-shadow-lg">⏱️ Game Time: <span className="text-yellow-300">{gameTime}s</span></span>
           </button>
 
           {/* Start Points Button */}
           <button 
-            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            className='group relative text-xl z-10 mobile:py-0 px-3 py-2 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
             onClick={onStartPoints}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-700 transition-transform duration-300 group-hover:scale-110"></div>
             <div className="absolute inset-0 rounded-2xl border-2 border-purple-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(147,51,234,0.6)]"></div>
-            <span className="relative text-white font-bold drop-shadow-lg">💎 Start Points: <span className="text-yellow-300">{score}</span></span>
+            <span className="relative mobile:text-xs text-sm text-white font-bold drop-shadow-lg">💎 Start Points: <span className="text-yellow-300">{score}</span></span>
           </button>
 
           {/* Create Game Button */}
           <button 
-            className='group relative text-xl z-10 px-6 py-4 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
+            className='group relative text-xl z-10 mobile:py-0 px-6 py-2 rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95'
             onClick={onPlay}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-pink-700 to-red-700 transition-transform duration-300 group-hover:scale-110"></div>
             <div className="absolute inset-0 rounded-2xl border-2 border-pink-400 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.6)]"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            <span className="relative text-white font-bold drop-shadow-lg">🎮 Create Game</span>
+            <span className="relative mobile:text-xs text-sm text-white font-bold drop-shadow-lg">🎮 Create Game</span>
           </button>
         </section>
 
