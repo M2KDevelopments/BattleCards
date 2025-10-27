@@ -835,7 +835,7 @@ function BattleCards() {
 
 					{/* Cards thrown */}
 					<PlayingCard
-						sx={{ fontSize: 60, height: 200, minWidth: 170 }}
+						sx={{ fontSize: 60, height: 220, minWidth: 170 }}
 						isDark={!lightMode}
 						colorDemand={colorDemand}
 						color={lightMode ? currentCard.color : darkCards[currentCard.darkId].color}>
@@ -843,8 +843,7 @@ function BattleCards() {
 					</PlayingCard>
 
 					{/* Cards to pick from */}
-					<div style={{ height: 200 }} role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-pointer shadow-md hover:shadow-lg hover:bg-slate-400 duration-200">
-						🃏
+					<div style={{height: 220 ,  backgroundImage: `url(pick.jpg)`, backgroundSize: '100%', overflow: 'hidden' }}  role="button" onClick={() => onPick()} title="Pick Card" className="relative text-7xl min-w-40 py-5 px-2 flex justify-center items-center rounded-md bg-slate-300 border-slate-700 border-2 cursor-grab shadow-md hover:shadow-lg hover:bg-slate-400 duration-200 hover:border-4">
 						{cardsToPick ? <span className="bg-slate-600 flex items-center justify-center text-center -top-5 -right-5 absolute shadow-3xl shadow-white border-2 border-white p-3 rounded-2xl text-white text-4xl"><b>{cardsToPick}</b><b>🃏</b></span> : null}
 						{pickUntil.length ?
 							<div className="flex gap-2 relative bottom-2 left-0">
