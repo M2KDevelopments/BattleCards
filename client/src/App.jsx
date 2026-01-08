@@ -11,7 +11,7 @@ import GameAudio from "./components/GameAudio";
 import { ToastContainer } from 'react-toastify';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AvailableGames from "./views/AvailableGames";
-const BACKENDURL = import.meta.env.PROD == false ? 'http://localhost:3002' : 'https://bc.m2kdevelopments.com'
+const BACKENDURL = import.meta.env.PROD == false ? 'http://localhost:3002' : 'https://battlecards-sxkn.onrender.com'
 
 
 // eslint-disable-next-line react-refresh/only-export-components
